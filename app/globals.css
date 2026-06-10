@@ -1,0 +1,38 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --ink: #0e1626;
+  --bone: #f6f7f4;
+  --paddle: #f2a30f;
+  --slate: #5a6478;
+  --funded: #177e63;
+  --signal: #c9303d;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--bone);
+  color: var(--ink);
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  background: var(--bone);
+  color: var(--ink);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+::selection {
+  background: var(--paddle);
+  color: var(--ink);
+}
