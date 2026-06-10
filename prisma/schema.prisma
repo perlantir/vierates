@@ -1,0 +1,335 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  BORROWER
+  LENDER
+  ADMIN
+}
+
+enum ListingStatus {
+  DRAFT
+  LIVE
+  IN_AUCTION
+  MATCHED
+  CLOSED
+  EXPIRED
+}
+
+enum AuctionStatus {
+  SCHEDULED
+  OPEN
+  CLOSED
+  REVEALED
+  EXPIRED
+  CANCELLED
+}
+
+enum BidStatus {
+  ACTIVE
+  IMPROVED
+  WITHDRAWN
+  WON
+  LOST
+}
+
+enum ConsentType {
+  TCPA_CONNECT
+  TCPA_REVEAL
+  CREDIT_SOFT_PULL
+  HPPA_OPTIN
+  ESIGN
+  SMS_OPTIN
+}
+
+enum StateStatus {
+  GREEN
+  YELLOW
+  RED
+}
+
+model User {
+  id               String            @id @default(cuid())
+  clerkId          String            @unique
+  role             Role
+  createdAt        DateTime          @default(now())
+  borrowerIdentity BorrowerIdentity?
+  listings         Listing[]         @relation("BorrowerListings")
+  lenderUser       LenderUser?
+  consentRecords   ConsentRecord[]
+  auditLogs        AuditLog[]        @relation("ActorAuditLogs")
+}
+
+model BorrowerIdentity {
+  id              String    @id @default(cuid())
+  userId          String    @unique
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  firstName       String
+  lastName        String
+  email           String
+  phone           String
+  phoneVerifiedAt DateTime?
+}
+
+model Listing {
+  id                 String              @id @default(cuid())
+  borrowerUserId     String
+  borrower           User                @relation("BorrowerListings", fields: [borrowerUserId], references: [id], onDelete: Cascade)
+  status             ListingStatus       @default(DRAFT)
+  purpose            String
+  propertyType       String
+  occupancy          String
+  state              String
+  county             String?
+  estValueBand       String
+  loanAmount         Int
+  ltvBand            String
+  currentRateBand    String?
+  creditBandStated   String
+  incomeBandStated   String
+  timeline           String
+  propertyMatchOk    Boolean             @default(false)
+  createdAt          DateTime            @default(now())
+  verificationBundle VerificationBundle?
+  auction            Auction?
+  connections        Connection[]
+  identityGrants     IdentityGrant[]
+  ratings            Rating[]
+  disputes           DisputeCase[]
+
+  @@index([borrowerUserId])
+  @@index([state, status])
+}
+
+model VerificationBundle {
+  id                 String    @id @default(cuid())
+  listingId          String    @unique
+  listing            Listing   @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  creditBandVerified String?
+  scoreModel         String?
+  dtiBand            String?
+  incomeVerifiedAt   DateTime?
+  vendorRefs         Json
+  status             String
+}
+
+model LenderOrg {
+  id             String          @id @default(cuid())
+  legalName      String
+  dba            String?
+  nmlsId         String          @unique
+  statesLicensed String[]
+  status         String          @default("PENDING")
+  users          LenderUser[]
+  coverageBox    CoverageBox?
+  wallet         CreditWallet?
+  bids           Bid[]
+  connections    Connection[]
+  consentRecords ConsentRecord[]
+  identityGrants IdentityGrant[]
+  ratings        Rating[]
+  disputes       DisputeCase[]
+}
+
+model LenderUser {
+  id               String    @id @default(cuid())
+  userId           String    @unique
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lenderOrgId      String
+  lenderOrg        LenderOrg @relation(fields: [lenderOrgId], references: [id], onDelete: Cascade)
+  orgRole          String
+  nmlsIndividualId String?
+  bids             Bid[]
+
+  @@index([lenderOrgId])
+}
+
+model CoverageBox {
+  id          String    @id @default(cuid())
+  lenderOrgId String    @unique
+  lenderOrg   LenderOrg @relation(fields: [lenderOrgId], references: [id], onDelete: Cascade)
+  states      String[]
+  ficoMin     Int
+  ltvMaxBp    Int
+  products    String[]
+  purposes    String[]
+  loanMin     Int
+  loanMax     Int
+}
+
+model Auction {
+  id           String        @id @default(cuid())
+  listingId    String        @unique
+  listing      Listing       @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  status       AuctionStatus @default(SCHEDULED)
+  opensAt      DateTime
+  closesAt     DateTime
+  pickDeadline DateTime?
+  bestAprBp    Int?
+  bidCount     Int           @default(0)
+  bids         Bid[]
+}
+
+model Bid {
+  id           String            @id @default(cuid())
+  auctionId    String
+  auction      Auction           @relation(fields: [auctionId], references: [id], onDelete: Cascade)
+  lenderOrgId  String
+  lenderOrg    LenderOrg         @relation(fields: [lenderOrgId], references: [id], onDelete: Cascade)
+  lenderUserId String
+  lenderUser   LenderUser        @relation(fields: [lenderUserId], references: [id], onDelete: Restrict)
+  product      String
+  program      String
+  rateBp       Int
+  points       Decimal
+  lenderFees   Json
+  aprBp        Int
+  lockDays     Int
+  conditions   String?
+  status       BidStatus         @default(ACTIVE)
+  creditTxnId  String
+  creditTxn    CreditTransaction @relation(fields: [creditTxnId], references: [id], onDelete: Restrict)
+  createdAt    DateTime          @default(now())
+
+  @@unique([auctionId, lenderOrgId, status])
+  @@index([lenderUserId])
+}
+
+model Connection {
+  id              String            @id @default(cuid())
+  listingId       String
+  listing         Listing           @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  lenderOrgId     String
+  lenderOrg       LenderOrg         @relation(fields: [lenderOrgId], references: [id], onDelete: Cascade)
+  status          String
+  consentRecordId String
+  consentRecord   ConsentRecord     @relation(fields: [consentRecordId], references: [id], onDelete: Restrict)
+  creditTxnId     String
+  creditTxn       CreditTransaction @relation(fields: [creditTxnId], references: [id], onDelete: Restrict)
+  createdAt       DateTime          @default(now())
+
+  @@index([listingId])
+  @@index([lenderOrgId])
+}
+
+model ConsentRecord {
+  id                   String          @id @default(cuid())
+  userId               String
+  user                 User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type                 ConsentType
+  grantedToLenderOrgId String?
+  grantedToLenderOrg   LenderOrg?      @relation(fields: [grantedToLenderOrgId], references: [id], onDelete: Restrict)
+  textShownSha256      String
+  ip                   String
+  userAgent            String
+  trustedFormCertUrl   String?
+  createdAt            DateTime        @default(now())
+  connections          Connection[]
+  identityGrants       IdentityGrant[]
+
+  @@index([userId])
+  @@index([grantedToLenderOrgId])
+}
+
+model IdentityGrant {
+  id              String        @id @default(cuid())
+  listingId       String
+  listing         Listing       @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  lenderOrgId     String
+  lenderOrg       LenderOrg     @relation(fields: [lenderOrgId], references: [id], onDelete: Cascade)
+  consentRecordId String
+  consentRecord   ConsentRecord @relation(fields: [consentRecordId], references: [id], onDelete: Restrict)
+  grantedAt       DateTime      @default(now())
+
+  @@unique([listingId, lenderOrgId])
+  @@index([lenderOrgId])
+}
+
+model CreditWallet {
+  id           String              @id @default(cuid())
+  lenderOrgId  String              @unique
+  lenderOrg    LenderOrg           @relation(fields: [lenderOrgId], references: [id], onDelete: Cascade)
+  balance      Int                 @default(0)
+  plan         String
+  transactions CreditTransaction[]
+}
+
+model CreditTransaction {
+  id             String       @id @default(cuid())
+  walletId       String
+  wallet         CreditWallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  delta          Int
+  reason         String
+  refId          String?
+  stripeRef      String?
+  idempotencyKey String       @unique
+  createdAt      DateTime     @default(now())
+  bids           Bid[]
+  connections    Connection[]
+
+  @@index([walletId])
+}
+
+model Rating {
+  id          String    @id @default(cuid())
+  lenderOrgId String
+  lenderOrg   LenderOrg @relation(fields: [lenderOrgId], references: [id], onDelete: Cascade)
+  listingId   String
+  listing     Listing   @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  stars       Int
+  comment     String?
+  createdAt   DateTime  @default(now())
+
+  @@index([lenderOrgId])
+  @@index([listingId])
+}
+
+model DisputeCase {
+  id          String    @id @default(cuid())
+  listingId   String
+  listing     Listing   @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  lenderOrgId String
+  lenderOrg   LenderOrg @relation(fields: [lenderOrgId], references: [id], onDelete: Cascade)
+  type        String
+  summary     String
+  status      String
+  resolution  String?
+  createdAt   DateTime  @default(now())
+
+  @@index([listingId])
+  @@index([lenderOrgId])
+}
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  actorUserId String?
+  actor       User?    @relation("ActorAuditLogs", fields: [actorUserId], references: [id], onDelete: SetNull)
+  action      String
+  entity      String
+  entityId    String
+  meta        Json
+  ip          String?
+  createdAt   DateTime @default(now())
+
+  @@index([actorUserId])
+  @@index([entity, entityId])
+}
+
+model StateRule {
+  state  String      @id
+  status StateStatus @default(YELLOW)
+  notes  String?
+}
+
+model WaitlistEntry {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  source    String?
+  createdAt DateTime @default(now())
+}
