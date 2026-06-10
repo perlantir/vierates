@@ -1,4 +1,9 @@
-import { BidStatus, ListingStatus, StateStatus, type Prisma } from "@prisma/client";
+import {
+  BidStatus,
+  ListingStatus,
+  StateStatus,
+  type Prisma,
+} from "@prisma/client";
 
 import { can, type Actor } from "@/lib/authz";
 import { prisma } from "@/lib/prisma";
@@ -110,7 +115,11 @@ export async function lenderView(
       where: {
         id: listingId,
         status: {
-          in: [ListingStatus.LIVE, ListingStatus.IN_AUCTION, ListingStatus.MATCHED],
+          in: [
+            ListingStatus.LIVE,
+            ListingStatus.IN_AUCTION,
+            ListingStatus.MATCHED,
+          ],
         },
       },
       select: lenderListingSelect,

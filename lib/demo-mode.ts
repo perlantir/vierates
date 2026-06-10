@@ -12,6 +12,8 @@ export function assertDemoDataAllowed(surface: Surface) {
     getEnv().DEMO_MODE &&
     (surface === "borrower" || surface === "lender")
   ) {
-    throw new Error(`Demo data cannot render on production ${surface} surfaces.`);
+    throw new Error(
+      `Demo data cannot render on production ${surface} surfaces.`,
+    );
   }
 }

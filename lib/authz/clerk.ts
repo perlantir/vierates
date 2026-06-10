@@ -13,7 +13,8 @@ export async function getActorFromClerk(): Promise<Actor | null> {
   }
 
   const claims = (session.sessionClaims ?? {}) as ClaimMap;
-  const metadata = readClaimMap(claims.publicMetadata) ?? readClaimMap(claims.metadata);
+  const metadata =
+    readClaimMap(claims.publicMetadata) ?? readClaimMap(claims.metadata);
   const role = parseRole(metadata?.role);
 
   if (!role) {

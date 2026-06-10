@@ -1,0 +1,76 @@
+name: CI
+
+on:
+  pull_request:
+
+env:
+  DATABASE_URL: "postgresql://vierates:vierates@localhost:54329/vierates?schema=public"
+  NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: "pk_test_replace_me"
+  CLERK_SECRET_KEY: "sk_test_replace_me"
+  CLERK_WEBHOOK_SECRET: "whsec_replace_me"
+  STRIPE_SECRET_KEY: "sk_test_replace_me"
+  STRIPE_WEBHOOK_SECRET: "whsec_replace_me"
+  TWILIO_ACCOUNT_SID: "AC_replace_me"
+  TWILIO_AUTH_TOKEN: "replace_me"
+  TWILIO_VERIFY_SERVICE_SID: "VA_replace_me"
+  PUSHER_APP_ID: "replace_me"
+  PUSHER_KEY: "replace_me"
+  PUSHER_SECRET: "replace_me"
+  PUSHER_CLUSTER: "us2"
+  INNGEST_EVENT_KEY: "replace_me"
+  INNGEST_SIGNING_KEY: "replace_me"
+  ARRAY_API_KEY: "replace_me"
+  TRUV_CLIENT_ID: "replace_me"
+  TRUV_SECRET: "replace_me"
+  PERSONA_API_KEY: "replace_me"
+  ATTOM_KEY: "replace_me"
+  SENTRY_DSN: "https://replace_me@sentry.example/1"
+  POSTHOG_KEY: "phc_replace_me"
+  UPSTASH_REDIS_REST_URL: "https://replace_me.upstash.io"
+  UPSTASH_REDIS_REST_TOKEN: "replace_me"
+  DEMO_MODE: "true"
+
+jobs:
+  verify:
+    name: Typecheck, lint, tests, build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.33.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Generate Prisma client
+        run: pnpm prisma:generate
+      - name: Typecheck
+        run: pnpm typecheck
+      - name: Lint
+        run: pnpm lint
+      - name: Unit tests
+        run: pnpm test
+      - name: Build
+        run: pnpm build
+
+  playwright:
+    name: Playwright smoke
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.33.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Install Chromium
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Smoke test
+        run: pnpm test:e2e

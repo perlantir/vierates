@@ -28,8 +28,7 @@ const e2eEnv = {
   TRUV_SECRET: process.env.TRUV_SECRET ?? "replace_me",
   PERSONA_API_KEY: process.env.PERSONA_API_KEY ?? "replace_me",
   ATTOM_KEY: process.env.ATTOM_KEY ?? "replace_me",
-  SENTRY_DSN:
-    process.env.SENTRY_DSN ?? "https://replace_me@sentry.example/1",
+  SENTRY_DSN: process.env.SENTRY_DSN ?? "https://replace_me@sentry.example/1",
   POSTHOG_KEY: process.env.POSTHOG_KEY ?? "phc_replace_me",
   UPSTASH_REDIS_REST_URL:
     process.env.UPSTASH_REDIS_REST_URL ?? "https://replace_me.upstash.io",

@@ -58,7 +58,11 @@ export type Resource =
   | OrgResource
   | AdminResource;
 
-export function can(actor: Actor | null, action: Action, resource: Resource): boolean {
+export function can(
+  actor: Actor | null,
+  action: Action,
+  resource: Resource,
+): boolean {
   if (!actor) {
     return false;
   }
@@ -133,8 +137,15 @@ function canReadIdentity(
   );
 }
 
-function canAccessOrg(actor: Actor, action: Action, resource: OrgResource): boolean {
-  if (actor.role !== Role.LENDER || actor.lenderOrgId !== resource.lenderOrgId) {
+function canAccessOrg(
+  actor: Actor,
+  action: Action,
+  resource: OrgResource,
+): boolean {
+  if (
+    actor.role !== Role.LENDER ||
+    actor.lenderOrgId !== resource.lenderOrgId
+  ) {
     return false;
   }
 

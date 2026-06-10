@@ -1,0 +1,9 @@
+AGENTS.md
+CLAUDE.md
+pnpm-lock.yaml
+node_modules/
+.next/
+coverage/
+playwright-report/
+test-results/
+prisma/migrations/

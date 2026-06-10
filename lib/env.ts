@@ -37,7 +37,9 @@ export function loadEnv(source: NodeJS.ProcessEnv = process.env): Env {
 
   if (!parsed.success) {
     const missing = parsed.error.issues.map((issue) => issue.path.join("."));
-    throw new Error(`Missing or invalid environment variables: ${missing.join(", ")}`);
+    throw new Error(
+      `Missing or invalid environment variables: ${missing.join(", ")}`,
+    );
   }
 
   return parsed.data;
