@@ -1,0 +1,99 @@
+import { AuctionStatus, ConsentType, PrismaClient } from "@prisma/client";
+import { expect, test } from "@playwright/test";
+
+process.env.DATABASE_URL ??=
+  "postgresql://vierates:vierates@localhost:54329/vierates?schema=public";
+
+const prisma = new PrismaClient();
+
+test.afterAll(async () => {
+  await prisma.$disconnect();
+});
+
+test("full borrower flow writes all prompt 3 consents and schedules auction", async ({
+  page,
+}) => {
+  const phone = `312781${String(1000 + (Date.now() % 8000)).padStart(4, "0")}`;
+  await page.context().setExtraHTTPHeaders({
+    "x-forwarded-for": `198.51.101.${1 + (Date.now() % 200)}`,
+  });
+
+  await page.goto("/app/new");
+  await page.getByRole("button", { name: "Lower my payment" }).click();
+  await page.getByLabel("Street address").fill("123 Main St");
+  await page.getByLabel("State").selectOption("IL");
+  await page.getByRole("button", { name: "Match property" }).click();
+  await page.getByRole("button", { name: "Single-family" }).click();
+  await page.getByRole("button", { name: "I live there" }).click();
+  await page.getByRole("button", { name: "Next" }).click();
+  await page.getByRole("button", { name: "Next" }).click();
+  await page.getByRole("button", { name: "6.5-7%" }).click();
+  await page.getByRole("button", { name: "Excellent 740+" }).click();
+  await page.getByRole("button", { name: "$200k+" }).click();
+  await page.getByRole("button", { name: "ASAP" }).click();
+  await page.getByLabel("Mobile phone").fill(phone);
+  await page.getByRole("button", { name: "Send code" }).click();
+  await page.getByLabel("Verification code").fill("123456");
+  await page.getByRole("button", { name: "Verify and list me" }).click();
+  await expect(page.getByTestId("listing-done")).toBeVisible();
+
+  const createdIdentity = await prisma.borrowerIdentity.findFirstOrThrow({
+    select: { userId: true },
+    where: { phone },
+  });
+  await page.context().addCookies([
+    {
+      domain: "127.0.0.1",
+      name: "vierates_e2e_borrower_user_id",
+      path: "/",
+      value: createdIdentity.userId,
+    },
+  ]);
+
+  await page.goto("/app/lenders");
+  await page
+    .getByRole("button", { name: "Request introduction" })
+    .first()
+    .click();
+  await page.getByRole("checkbox").check();
+  await page.getByRole("button", { name: "Send introduction" }).click();
+  await expect(page.getByText("Introduction delivered.")).toBeVisible();
+
+  await page.goto("/app/verify");
+  await page.getByRole("button", { name: "Continue" }).click();
+  await page.getByRole("button", { name: "Run soft inquiry sandbox" }).click();
+  await page.getByRole("button", { name: "Verify income sandbox" }).click();
+  await expect(page.getByTestId("masked-preview")).toBeVisible();
+  await page.getByRole("button", { name: "Schedule my Bid Room" }).click();
+  await expect(page.getByTestId("verify-done")).toBeVisible();
+
+  const identity = await prisma.borrowerIdentity.findFirstOrThrow({
+    include: {
+      user: {
+        include: {
+          consentRecords: true,
+          listings: {
+            include: { auction: true },
+            orderBy: { createdAt: "desc" },
+            take: 1,
+          },
+        },
+      },
+    },
+    where: { phone },
+  });
+
+  const consentTypes = new Set(
+    identity.user.consentRecords.map((record) => record.type),
+  );
+  const listing = identity.user.listings[0];
+
+  expect(consentTypes.has(ConsentType.SMS_OPTIN)).toBe(true);
+  expect(consentTypes.has(ConsentType.TCPA_CONNECT)).toBe(true);
+  expect(consentTypes.has(ConsentType.CREDIT_SOFT_PULL)).toBe(true);
+  expect(consentTypes.has(ConsentType.HPPA_OPTIN)).toBe(true);
+  for (const record of identity.user.consentRecords) {
+    expect(record.textShownSha256).toHaveLength(64);
+  }
+  expect(listing?.auction?.status).toBe(AuctionStatus.SCHEDULED);
+});

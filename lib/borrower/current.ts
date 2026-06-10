@@ -1,9 +1,31 @@
 import { Role } from "@prisma/client";
 import { auth } from "@clerk/nextjs/server";
+import { cookies } from "next/headers";
 
 import { prisma } from "@/lib/prisma";
 
 export async function getCurrentBorrowerUserId(): Promise<string | null> {
+  if (process.env.VIERATES_E2E === "true") {
+    const cookieStore = await cookies();
+    const e2eBorrowerUserId = cookieStore.get(
+      "vierates_e2e_borrower_user_id",
+    )?.value;
+
+    if (e2eBorrowerUserId) {
+      const user = await prisma.user.findFirst({
+        select: { id: true },
+        where: {
+          id: e2eBorrowerUserId,
+          role: Role.BORROWER,
+        },
+      });
+
+      if (user) {
+        return user.id;
+      }
+    }
+  }
+
   if (process.env.VIERATES_E2E === "true" || process.env.DEMO_MODE === "true") {
     const newestListing = await prisma.listing.findFirst({
       orderBy: { createdAt: "desc" },

@@ -53,6 +53,15 @@ test("borrower verifies profile and schedules a Bid Room", async ({ page }) => {
     },
   });
 
+  await page.context().addCookies([
+    {
+      domain: "127.0.0.1",
+      name: "vierates_e2e_borrower_user_id",
+      path: "/",
+      value: user.id,
+    },
+  ]);
+
   await page.goto("/app/verify");
   await expect(
     page.getByText(

@@ -53,6 +53,15 @@ test("borrower dashboard toggles rate watch and deletes vault data", async ({
     },
   });
 
+  await page.context().addCookies([
+    {
+      domain: "127.0.0.1",
+      name: "vierates_e2e_borrower_user_id",
+      path: "/",
+      value: user.id,
+    },
+  ]);
+
   await page.goto("/app");
   await expect(
     page.getByRole("heading", { name: "Borrower dashboard" }),

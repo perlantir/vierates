@@ -394,6 +394,24 @@ model FunnelEvent {
   @@index([event, createdAt])
 }
 
+model SmsOptOut {
+  phone     String   @id
+  createdAt DateTime @default(now())
+}
+
+model NotificationLog {
+  id        String   @id @default(cuid())
+  channel   String
+  recipient String
+  template  String
+  payload   Json
+  status    String
+  createdAt DateTime @default(now())
+
+  @@index([recipient])
+  @@index([template, createdAt])
+}
+
 model LenderApplication {
   id               String        @id @default(cuid())
   organizationName String

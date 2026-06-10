@@ -15,6 +15,9 @@ test("borrower completes the listing wizard and writes SMS consent", async ({
 }) => {
   const suffix = String(1000 + (Date.now() % 8000)).padStart(4, "0");
   const phone = `312777${suffix}`;
+  await page.context().setExtraHTTPHeaders({
+    "x-forwarded-for": `198.51.100.${1 + (Date.now() % 200)}`,
+  });
 
   await page.goto("/app/new");
   await page.getByRole("button", { name: "Lower my payment" }).click();

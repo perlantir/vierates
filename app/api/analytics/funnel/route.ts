@@ -14,7 +14,15 @@ const funnelSchema = z.object({
 });
 
 export async function POST(request: Request) {
-  const parsed = funnelSchema.safeParse(await request.json());
+  let body: unknown;
+
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid event" }, { status: 400 });
+  }
+
+  const parsed = funnelSchema.safeParse(body);
 
   if (!parsed.success) {
     return NextResponse.json({ error: "Invalid event" }, { status: 400 });

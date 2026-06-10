@@ -53,6 +53,15 @@ test("borrower requests and closes a lender introduction", async ({ page }) => {
   });
   const startingBalance = lender.wallet?.balance ?? 0;
 
+  await page.context().addCookies([
+    {
+      domain: "127.0.0.1",
+      name: "vierates_e2e_borrower_user_id",
+      path: "/",
+      value: user.id,
+    },
+  ]);
+
   await page.goto("/app/lenders");
   await expect(
     page.getByRole("heading", { name: "Lender directory" }),
