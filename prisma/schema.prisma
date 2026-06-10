@@ -78,30 +78,33 @@ model BorrowerIdentity {
 }
 
 model Listing {
-  id                 String              @id @default(cuid())
-  borrowerUserId     String
-  borrower           User                @relation("BorrowerListings", fields: [borrowerUserId], references: [id], onDelete: Cascade)
-  status             ListingStatus       @default(DRAFT)
-  purpose            String
-  propertyType       String
-  occupancy          String
-  state              String
-  county             String?
-  estValueBand       String
-  loanAmount         Int
-  ltvBand            String
-  currentRateBand    String?
-  creditBandStated   String
-  incomeBandStated   String
-  timeline           String
-  propertyMatchOk    Boolean             @default(false)
-  createdAt          DateTime            @default(now())
-  verificationBundle VerificationBundle?
-  auction            Auction?
-  connections        Connection[]
-  identityGrants     IdentityGrant[]
-  ratings            Rating[]
-  disputes           DisputeCase[]
+  id                   String              @id @default(cuid())
+  borrowerUserId       String
+  borrower             User                @relation("BorrowerListings", fields: [borrowerUserId], references: [id], onDelete: Cascade)
+  status               ListingStatus       @default(DRAFT)
+  purpose              String
+  propertyType         String
+  occupancy            String
+  state                String
+  county               String?
+  estValueBand         String
+  loanAmount           Int
+  ltvBand              String
+  currentRateBand      String?
+  creditBandStated     String
+  incomeBandStated     String
+  timeline             String
+  propertyMatchOk      Boolean             @default(false)
+  rateWatchNurtureFlag Boolean             @default(false)
+  deletedAt            DateTime?
+  createdAt            DateTime            @default(now())
+  verificationBundle   VerificationBundle?
+  auction              Auction?
+  connections          Connection[]
+  identityGrants       IdentityGrant[]
+  ratings              Rating[]
+  disputes             DisputeCase[]
+  manualReviewCases    ManualReviewCase[]
 
   @@index([borrowerUserId])
   @@index([state, status])
@@ -333,6 +336,62 @@ model WaitlistEntry {
   email     String   @unique
   source    String?
   createdAt DateTime @default(now())
+}
+
+model ListingDraft {
+  id             String   @id @default(cuid())
+  resumeToken    String   @unique
+  borrowerUserId String?
+  phone          String?
+  email          String?
+  state          String?
+  data           Json
+  status         String   @default("OPEN")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([borrowerUserId])
+  @@index([phone])
+}
+
+model OtpChallenge {
+  id        String   @id @default(cuid())
+  phone     String
+  ip        String
+  codeHash  String
+  attempts  Int      @default(0)
+  status    String   @default("PENDING")
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([phone, status])
+  @@index([ip, createdAt])
+}
+
+model ManualReviewCase {
+  id        String   @id @default(cuid())
+  listingId String?
+  listing   Listing? @relation(fields: [listingId], references: [id], onDelete: SetNull)
+  type      String
+  summary   String
+  status    String   @default("OPEN")
+  createdAt DateTime @default(now())
+
+  @@index([listingId])
+  @@index([status])
+}
+
+model FunnelEvent {
+  id        String   @id @default(cuid())
+  userId    String?
+  sessionId String
+  event     String
+  step      String
+  metadata  Json
+  createdAt DateTime @default(now())
+
+  @@index([sessionId])
+  @@index([event, createdAt])
 }
 
 model LenderApplication {
