@@ -1,13 +1,52 @@
-export default function BorrowerDashboardPage() {
+import { BorrowerDashboard } from "@/components/borrower/dashboard/borrower-dashboard";
+import { FooterDisclosures } from "@/components/footer-disclosures";
+import { NavBar } from "@/components/nav-bar";
+import { getCurrentBorrowerUserId } from "@/lib/borrower/current";
+import { getBorrowerDashboardData } from "@/lib/borrower/dashboard";
+
+export default async function BorrowerDashboardPage() {
+  const borrowerUserId = await getCurrentBorrowerUserId();
+  const dashboard = borrowerUserId
+    ? await getBorrowerDashboardData(borrowerUserId)
+    : { listing: null };
+  const listing = dashboard.listing
+    ? {
+        auction: dashboard.listing.auction
+          ? {
+              bestAprBp: dashboard.listing.auction.bestAprBp,
+              bidCount: dashboard.listing.auction.bidCount,
+              closesAt: dashboard.listing.auction.closesAt.toISOString(),
+              status: dashboard.listing.auction.status,
+            }
+          : null,
+        connections: dashboard.listing.connections.map((connection) => ({
+          createdAt: connection.createdAt.toISOString(),
+          lenderName:
+            connection.lenderOrg.dba ?? connection.lenderOrg.legalName,
+          nmlsId: connection.lenderOrg.nmlsId,
+          status: connection.status,
+        })),
+        county: dashboard.listing.county,
+        creditBandStated: dashboard.listing.creditBandStated,
+        id: dashboard.listing.id,
+        incomeBandStated: dashboard.listing.incomeBandStated,
+        loanAmount: dashboard.listing.loanAmount,
+        ltvBand: dashboard.listing.ltvBand,
+        propertyMatchOk: dashboard.listing.propertyMatchOk,
+        propertyType: dashboard.listing.propertyType,
+        purpose: dashboard.listing.purpose,
+        rateWatchNurtureFlag: dashboard.listing.rateWatchNurtureFlag,
+        state: dashboard.listing.state,
+        status: dashboard.listing.status,
+        timeline: dashboard.listing.timeline,
+      }
+    : null;
+
   return (
-    <main className="mx-auto min-h-screen w-full max-w-[1100px] px-6 py-10">
-      <h1 className="font-display text-4xl font-semibold">
-        Borrower dashboard
-      </h1>
-      <p className="mt-3 max-w-2xl text-slate">
-        Authenticated borrower surfaces will render owned listings and masked
-        marketplace state here.
-      </p>
-    </main>
+    <>
+      <NavBar />
+      <BorrowerDashboard listing={listing} />
+      <FooterDisclosures />
+    </>
   );
 }
