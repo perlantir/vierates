@@ -24,7 +24,7 @@ export function RateDisplay({
   }
 
   return (
-    <figure className="font-mono tabular-nums">
+    <figure className="vr-data">
       <div className="flex items-baseline justify-between gap-4">
         <span className="text-2xl font-semibold">{rate}</span>
         <span className="text-sm text-slate">APR {apr}</span>

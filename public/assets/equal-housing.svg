@@ -1,0 +1,10 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Equal Housing Opportunity">
+  <rect x="1" y="1" width="62" height="62" rx="2" fill="none" stroke="#0E1626" stroke-width="2"></rect>
+  
+  <path d="M32 12 L52 28 L46 28 L46 30 L18 30 L18 28 L12 28 Z" fill="#0E1626"></path>
+  
+  <path d="M20 30 L44 30 L44 50 L20 50 Z" fill="none" stroke="#0E1626" stroke-width="2.4"></path>
+  
+  <rect x="26" y="36" width="12" height="2.8" fill="#0E1626"></rect>
+  <rect x="26" y="42" width="12" height="2.8" fill="#0E1626"></rect>
+</svg>

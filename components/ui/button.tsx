@@ -4,13 +4,28 @@ type ButtonProps = {
   children: React.ReactNode;
   href?: string;
   type?: "button" | "submit";
-  variant?: "primary" | "ghost" | "danger";
+  variant?: "primary" | "ghost" | "danger" | "secondary" | "dark";
+  size?: "sm" | "md" | "lg";
+  fullWidth?: boolean;
+  disabled?: boolean;
+  onClick?: () => void;
 };
 
 const variantClasses: Record<NonNullable<ButtonProps["variant"]>, string> = {
-  primary: "bg-paddle text-ink hover:bg-paddle/90",
-  ghost: "border border-ink/15 bg-transparent text-ink hover:bg-white",
-  danger: "bg-signal text-white hover:bg-signal/90",
+  primary:
+    "border-paddle bg-paddle text-ink hover:border-[var(--paddle-deep)] hover:bg-[var(--paddle-deep)]",
+  secondary:
+    "border-line-strong bg-transparent text-ink hover:border-ink hover:bg-ink/[0.03]",
+  ghost: "border-transparent bg-transparent text-ink hover:bg-ink/[0.05]",
+  danger:
+    "border-signal bg-transparent text-signal hover:bg-[var(--signal-tint)]",
+  dark: "border-ink bg-ink text-on-ink hover:border-ink-80 hover:bg-ink-80",
+};
+
+const sizeClasses: Record<NonNullable<ButtonProps["size"]>, string> = {
+  sm: "min-h-9 px-3.5 text-sm",
+  md: "min-h-11 px-[18px] text-base",
+  lg: "min-h-[52px] px-7 text-lg",
 };
 
 export function Button({
@@ -18,8 +33,19 @@ export function Button({
   href,
   type = "button",
   variant = "primary",
+  size = "md",
+  fullWidth = false,
+  disabled = false,
+  onClick,
 }: ButtonProps) {
-  const className = `inline-flex min-h-11 items-center justify-center rounded-ui px-5 text-sm font-semibold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink ${variantClasses[variant]}`;
+  const className = [
+    "inline-flex items-center justify-center gap-2 rounded-ui border font-semibold leading-none transition-colors duration-150",
+    "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--focus-ring)]",
+    "disabled:cursor-not-allowed disabled:opacity-45",
+    fullWidth ? "w-full" : "w-auto",
+    sizeClasses[size],
+    variantClasses[variant],
+  ].join(" ");
 
   if (href) {
     return (
@@ -30,7 +56,12 @@ export function Button({
   }
 
   return (
-    <button className={className} type={type}>
+    <button
+      className={className}
+      disabled={disabled}
+      onClick={onClick}
+      type={type}
+    >
       {children}
     </button>
   );

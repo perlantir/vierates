@@ -219,19 +219,20 @@ model Connection {
 }
 
 model ConsentRecord {
-  id                   String          @id @default(cuid())
+  id                   String              @id @default(cuid())
   userId               String
-  user                 User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user                 User                @relation(fields: [userId], references: [id], onDelete: Cascade)
   type                 ConsentType
   grantedToLenderOrgId String?
-  grantedToLenderOrg   LenderOrg?      @relation(fields: [grantedToLenderOrgId], references: [id], onDelete: Restrict)
+  grantedToLenderOrg   LenderOrg?          @relation(fields: [grantedToLenderOrgId], references: [id], onDelete: Restrict)
   textShownSha256      String
   ip                   String
   userAgent            String
   trustedFormCertUrl   String?
-  createdAt            DateTime        @default(now())
+  createdAt            DateTime            @default(now())
   connections          Connection[]
   identityGrants       IdentityGrant[]
+  lenderApplications   LenderApplication[]
 
   @@index([userId])
   @@index([grantedToLenderOrgId])
@@ -332,4 +333,21 @@ model WaitlistEntry {
   email     String   @unique
   source    String?
   createdAt DateTime @default(now())
+}
+
+model LenderApplication {
+  id               String        @id @default(cuid())
+  organizationName String
+  nmlsId           String
+  states           String[]
+  contactName      String
+  email            String
+  phone            String
+  consentRecordId  String
+  consentRecord    ConsentRecord @relation(fields: [consentRecordId], references: [id], onDelete: Restrict)
+  status           String        @default("QUEUED")
+  createdAt        DateTime      @default(now())
+
+  @@index([nmlsId])
+  @@index([email])
 }
