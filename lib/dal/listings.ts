@@ -110,7 +110,7 @@ export async function lenderView(
     return null;
   }
 
-  const [listing, coverageBox, stateRule] = await Promise.all([
+  const [listing, coverageBox] = await Promise.all([
     prisma.listing.findFirst({
       where: {
         id: listingId,
@@ -135,25 +135,17 @@ export async function lenderView(
         loanMax: true,
       },
     }),
-    prisma.stateRule.findUnique({
-      where: {
-        state: "__placeholder__",
-      },
-    }),
   ]);
 
   if (!listing || !coverageBox) {
     return null;
   }
 
-  const resolvedStateRule =
-    stateRule?.state === listing.state
-      ? stateRule
-      : await prisma.stateRule.findUnique({
-          where: {
-            state: listing.state,
-          },
-        });
+  const stateRule = await prisma.stateRule.findUnique({
+    where: {
+      state: listing.state,
+    },
+  });
 
   const allowed = can(actor, "listing:read:masked", {
     type: "listing",
@@ -161,7 +153,7 @@ export async function lenderView(
     state: listing.state,
     purpose: listing.purpose,
     loanAmount: listing.loanAmount,
-    stateStatus: resolvedStateRule?.status ?? StateStatus.YELLOW,
+    stateStatus: stateRule?.status ?? StateStatus.YELLOW,
     coverageBox,
   });
 
