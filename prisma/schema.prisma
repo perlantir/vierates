@@ -138,6 +138,7 @@ model LenderOrg {
   identityGrants IdentityGrant[]
   ratings        Rating[]
   disputes       DisputeCase[]
+  invites        LenderInvite[]
 }
 
 model LenderUser {
@@ -427,4 +428,17 @@ model LenderApplication {
 
   @@index([nmlsId])
   @@index([email])
+}
+
+model LenderInvite {
+  id          String    @id @default(cuid())
+  lenderOrgId String
+  lenderOrg   LenderOrg @relation(fields: [lenderOrgId], references: [id], onDelete: Cascade)
+  email       String
+  role        String
+  status      String    @default("PENDING")
+  createdAt   DateTime  @default(now())
+
+  @@unique([lenderOrgId, email])
+  @@index([lenderOrgId])
 }
