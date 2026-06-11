@@ -72,9 +72,14 @@ export const borrowerIdentityFieldNames = [
   "borrower",
   "borrowerIdentity",
   "firstName",
+  "firstNameEncrypted",
   "lastName",
+  "lastNameEncrypted",
   "email",
+  "emailEncrypted",
   "phone",
+  "phoneEncrypted",
+  "phoneHash",
   "phoneVerifiedAt",
 ] as const;
 

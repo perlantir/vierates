@@ -2,6 +2,7 @@ export function setValidTestEnv(overrides: Partial<NodeJS.ProcessEnv> = {}) {
   Object.assign(process.env, {
     ARRAY_API_KEY: "array_unit_key",
     ATTOM_KEY: "attom_unit_key",
+    BORROWER_IDENTITY_KEY: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
     CLERK_SECRET_KEY: "sk_test_vierates_unit",
     CLERK_WEBHOOK_SECRET: "whsec_vierates_unit",
     DATABASE_URL:

@@ -10,14 +10,16 @@ import { describe, expect, it } from "vitest";
 
 import { lenderListingSelect, lenderView } from "../../lib/dal/listings";
 import { getLenderPortalData } from "../../lib/lender/portal";
+import { borrowerIdentityVaultData } from "../../lib/security/borrower-identity-vault";
 import { authorizePusherChannel } from "../../lib/services/auction";
+import { setValidTestEnv } from "../helpers/env";
 
-process.env.DATABASE_URL ??=
-  "postgresql://vierates:vierates@localhost:54329/vierates?schema=public";
+setValidTestEnv();
 
 const prisma = new PrismaClient();
 const piiPattern =
   /borrowerIdentity|firstName|lastName|email|phone|phoneVerifiedAt|streetAddress|street address/i;
+let anonymityPhoneCounter = 0;
 
 describe("security: anonymity boundary fuzz", () => {
   it("keeps lender DAL projections free of identity fields", () => {
@@ -109,7 +111,8 @@ async function createAnonymityFixture(auctionStatus: AuctionStatus) {
   const email = `alice.${suffix}@borrower.vierates.local`;
   const firstName = `Alice${suffix.slice(0, 4)}`;
   const lastName = `Private${suffix.slice(-4)}`;
-  const phone = `312555${suffix.slice(-4).padStart(4, "0")}`;
+  anonymityPhoneCounter += 1;
+  const phone = `312555${suffix.replace(/\D/g, "")}${anonymityPhoneCounter}`;
 
   await prisma.stateRule.upsert({
     create: { state: "IL", status: StateStatus.GREEN },
@@ -120,12 +123,12 @@ async function createAnonymityFixture(auctionStatus: AuctionStatus) {
   const borrower = await prisma.user.create({
     data: {
       borrowerIdentity: {
-        create: {
+        create: borrowerIdentityVaultData({
           email,
           firstName,
           lastName,
           phone,
-        },
+        }),
       },
       clerkId: `security-anon-borrower:${suffix}`,
       role: Role.BORROWER,

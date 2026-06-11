@@ -13,9 +13,10 @@ import { sha256 } from "../../lib/consent/records";
 import { consentTextForParty } from "../../lib/consent/text";
 import { createListingFromWizard } from "../../lib/borrower/wizard";
 import { scheduleBorrowerAuction } from "../../lib/borrower/verification";
+import { borrowerIdentityVaultData } from "../../lib/security/borrower-identity-vault";
+import { setValidTestEnv } from "../helpers/env";
 
-process.env.DATABASE_URL ??=
-  "postgresql://vierates:vierates@localhost:54329/vierates?schema=public";
+setValidTestEnv();
 
 const prisma = new PrismaClient();
 
@@ -46,10 +47,12 @@ describe("security: consent integrity", () => {
     });
     await prisma.borrowerIdentity.create({
       data: {
-        email: `${phone}@borrower.vierates.local`,
-        firstName: "Geo",
-        lastName: "Security",
-        phone,
+        ...borrowerIdentityVaultData({
+          email: `${phone}@borrower.vierates.local`,
+          firstName: "Geo",
+          lastName: "Security",
+          phone,
+        }),
         userId: user.id,
       },
     });

@@ -5,6 +5,7 @@ on:
 
 env:
   DATABASE_URL: "postgresql://vierates:vierates@localhost:54329/vierates?schema=public"
+  BORROWER_IDENTITY_KEY: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
   NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: "pk_test_vierates_ci"
   CLERK_SECRET_KEY: "sk_test_vierates_ci"
   CLERK_WEBHOOK_SECRET: "whsec_vierates_ci"
@@ -31,6 +32,18 @@ env:
   DEMO_MODE: "true"
 
 jobs:
+  secrets:
+    name: Secret scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   verify:
     name: Typecheck, lint, tests, build
     runs-on: ubuntu-latest
@@ -90,6 +103,10 @@ jobs:
         run: |
           pnpm exec prisma migrate deploy
           pnpm seed
+      - name: Install PostgreSQL client
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+      - name: Backup restore drill
+        run: pnpm db:restore-drill
       - name: Install Chromium
         run: pnpm exec playwright install --with-deps chromium
       - name: Smoke test

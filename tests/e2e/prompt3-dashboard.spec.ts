@@ -1,8 +1,12 @@
 import { ListingStatus, PrismaClient, Role } from "@prisma/client";
 import { expect, test } from "@playwright/test";
 
+import { borrowerIdentityVaultData } from "../../lib/security/borrower-identity-vault";
+
 process.env.DATABASE_URL ??=
   "postgresql://vierates:vierates@localhost:54329/vierates?schema=public";
+process.env.BORROWER_IDENTITY_KEY ??=
+  "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
 
 const prisma = new PrismaClient();
 
@@ -25,10 +29,12 @@ test("borrower dashboard toggles rate watch and deletes vault data", async ({
 
   await prisma.borrowerIdentity.create({
     data: {
-      email: `dashboard-${suffix}@example.com`,
-      firstName: "Dashboard",
-      lastName: "Borrower",
-      phone,
+      ...borrowerIdentityVaultData({
+        email: `dashboard-${suffix}@example.com`,
+        firstName: "Dashboard",
+        lastName: "Borrower",
+        phone,
+      }),
       userId: user.id,
     },
   });

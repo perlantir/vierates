@@ -12,9 +12,18 @@ const prefixedSecret = (prefix: string) =>
     message: `must start with ${prefix}`,
   });
 
+const identityKey = nonPlaceholder.refine(
+  (value) =>
+    /^[a-f0-9]{64}$/i.test(value) || Buffer.from(value, "base64").length >= 32,
+  {
+    message: "must be 32 bytes as base64 or 64 hex characters",
+  },
+);
+
 const envSchema = z.object({
   ARRAY_API_KEY: nonPlaceholder,
   ATTOM_KEY: nonPlaceholder,
+  BORROWER_IDENTITY_KEY: identityKey,
   CLERK_SECRET_KEY: prefixedSecret("sk_"),
   CLERK_WEBHOOK_SECRET: prefixedSecret("whsec_"),
   DATABASE_URL: z.string().url(),

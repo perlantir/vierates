@@ -67,14 +67,15 @@ model User {
 }
 
 model BorrowerIdentity {
-  id              String    @id @default(cuid())
-  userId          String    @unique
-  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  firstName       String
-  lastName        String
-  email           String
-  phone           String
-  phoneVerifiedAt DateTime?
+  id                 String    @id @default(cuid())
+  userId             String    @unique
+  user               User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  firstNameEncrypted String    @map("firstName")
+  lastNameEncrypted  String    @map("lastName")
+  emailEncrypted     String    @map("email")
+  phoneEncrypted     String    @map("phone")
+  phoneHash          String    @unique
+  phoneVerifiedAt    DateTime?
 }
 
 model Listing {

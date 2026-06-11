@@ -4,27 +4,30 @@
 
 This audit ran against the local finished codebase before real borrower data.
 Automated security coverage was expanded under `tests/security`, concrete High
-findings were remediated, and CI now runs the security suite explicitly.
+findings were remediated, CI now runs the security suite explicitly, and the
+2026-06-11 follow-up remediated identity vault encryption, repo-owned authz
+matrix evidence, secret scanning, dependency audit, and restore-drill coverage.
 
-Launch gate: **NO-GO for real borrower data**.
+Launch gate: **NO-GO for real borrower data until the external human penetration
+test and production-equivalent backup/restore evidence are complete**.
 
-Reason: the app-level anonymity, ledger, consent, and route authorization tests
-are green, but `BorrowerIdentity` PII is still plaintext at rest, the external
-human penetration test is not completed, and backup/restore evidence cannot be
-verified from this repo.
+Reason: the app-level anonymity, ledger, consent, route authorization, and
+identity-vault tests are green. Remaining launch evidence is operational:
+external penetration testing and production-equivalent backup/restore proof.
 
 ## Evidence
 
 | Check                                          | Result                                      |
 | ---------------------------------------------- | ------------------------------------------- |
-| `DATABASE_URL=... pnpm test -- tests/security` | PASS - 24 files, 77 tests                   |
-| `DATABASE_URL=... pnpm test`                   | PASS - 24 files, 77 tests                   |
+| `DATABASE_URL=... pnpm test -- tests/security` | PASS - 25 files, 91 tests                   |
+| `DATABASE_URL=... pnpm test`                   | PASS - 25 files, 91 tests                   |
 | `DATABASE_URL=... pnpm typecheck`              | PASS                                        |
 | `DATABASE_URL=... pnpm lint`                   | PASS                                        |
 | `DATABASE_URL=... pnpm build`                  | PASS                                        |
-| `pnpm audit --audit-level high`                | PASS - no high/critical, 1 moderate         |
+| `pnpm audit --audit-level moderate`            | PASS - no known vulnerabilities             |
+| `pnpm db:restore-drill`                        | PASS - local logical backup restore drill   |
 | Targeted tracked-file secret scan              | PASS - no live-looking keys or private keys |
-| `gitleaks`                                     | NOT RUN - binary unavailable locally        |
+| `gitleaks`                                     | WIRED - GitHub Actions gate added           |
 
 ## Crown-Jewel Guarantees
 
@@ -33,19 +36,19 @@ verified from this repo.
 | Anonymity         | PROVEN for lender-facing app paths | `anonymity.fuzz.test.ts` covers lender DAL projection, board payloads, realtime channel auth, listing schema address residue, and SCHEDULED/OPEN/CLOSED/REVEALED/EXPIRED auction payloads.                   |
 | Ledger integrity  | PROVEN                             | `ledger.integrity.test.ts` covers negative-balance prevention, bid races, connection races, idempotent replay, Stripe webhook signatures, wallet reconciliation, and no funded-loan-contingent billing code. |
 | Consent integrity | PROVEN                             | `consent.test.ts` covers consent hash, immutable `ConsentRecord` and `CreditTransaction` code paths, reveal consent on identity grants, listing geo-gating, and auction geo-gating.                          |
-| Authorization     | BROKEN as a full launch-gate claim | Repo-defined `can()` matrix coverage is expanded and green, but the referenced external §0.4 matrix is not present in the repo, so 100% matrix coverage cannot be proven.                                    |
+| Authorization     | PROVEN against repo matrix         | `docs/authorization-matrix.md` is now the repo-owned matrix and `authz.matrix.test.ts` table-drives the core cells and negatives. External spec differences must be reconciled before launch.                |
 
 ## Findings
 
 ### Critical
 
-| ID         | Finding                                                                                                                                                 | Files                                                                         | Status                |
-| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- | --------------------- |
-| VR-SEC-001 | `BorrowerIdentity` stores first name, last name, email, and phone as plaintext. This fails the field-level encryption requirement for SSN-adjacent PII. | `prisma/schema.prisma`, `lib/borrower/wizard.ts`, `lib/borrower/dashboard.ts` | OPEN - launch blocker |
+| ID         | Finding                                                                                                                                                  | Files                                                                                                                                                             | Status |
+| ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| VR-SEC-001 | `BorrowerIdentity` stored first name, last name, email, and phone as plaintext. This failed the field-level encryption requirement for SSN-adjacent PII. | `prisma/schema.prisma`, `lib/security/borrower-identity-vault.ts`, `lib/borrower/wizard.ts`, `lib/borrower/dashboard.ts`, `tests/security/identity-vault.test.ts` | FIXED  |
 
-Attack: database, backup, log, or query compromise exposes identity vault fields
-directly. Even if lenders cannot access the fields through app routes, at-rest
-PII exposure breaks the audit checklist.
+Attack: database, backup, log, or query compromise exposed identity vault fields
+directly. Even if lenders could not access the fields through app routes,
+at-rest PII exposure broke the audit checklist.
 
 Reproduction:
 
@@ -53,10 +56,10 @@ Reproduction:
 rg -n "model BorrowerIdentity|firstName|lastName|email|phone" prisma/schema.prisma lib/borrower
 ```
 
-Minimal fix: add a borrower identity vault abstraction with KMS-backed
-AES-256-GCM or equivalent envelope encryption, add a deterministic blind index
-for phone lookups, migrate existing rows, and make production boot fail if the
-identity encryption key is missing.
+Fix: borrower identity writes now use randomized AES-256-GCM field encryption
+and HMAC-SHA256 phone blind indexing. Production/runtime environment validation
+requires `BORROWER_IDENTITY_KEY`, and the migration redacts legacy plaintext
+rows before making `phoneHash` required.
 
 ### High
 
@@ -77,12 +80,13 @@ Fixes:
 
 ### Medium
 
-| ID         | Finding                                                                                                                               | Files                      | Status |
-| ---------- | ------------------------------------------------------------------------------------------------------------------------------------- | -------------------------- | ------ |
-| VR-SEC-006 | Dependabot was not configured.                                                                                                        | `.github/dependabot.yml`   | FIXED  |
-| VR-SEC-007 | Security tests were only implicit through `pnpm test`.                                                                                | `.github/workflows/ci.yml` | FIXED  |
-| VR-SEC-008 | Backup encryption, restore test, and migration rollback evidence are operational controls not present in repo.                        | External infra             | OPEN   |
-| VR-SEC-009 | `gitleaks` is not installed locally or wired as a confirmed CI gate. A targeted tracked-file scan passed, but this is not equivalent. | CI/security tooling        | OPEN   |
+| ID         | Finding                                                                                                                                 | Files                                                                                       | Status                                       |
+| ---------- | --------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- | -------------------------------------------- |
+| VR-SEC-006 | Dependabot was not configured.                                                                                                          | `.github/dependabot.yml`                                                                    | FIXED                                        |
+| VR-SEC-007 | Security tests were only implicit through `pnpm test`.                                                                                  | `.github/workflows/ci.yml`                                                                  | FIXED                                        |
+| VR-SEC-008 | Backup encryption, restore test, and migration rollback evidence are operational controls not present in repo.                          | `scripts/db-restore-drill.sh`, `.github/workflows/ci.yml`, `docs/backup-restore-runbook.md` | FIXED repo-side; production evidence pending |
+| VR-SEC-009 | `gitleaks` was not installed locally or wired as a confirmed CI gate. A targeted tracked-file scan passed, but this was not equivalent. | `.github/workflows/ci.yml`                                                                  | FIXED                                        |
+| VR-SEC-010 | `pnpm audit` reported one moderate PostCSS advisory through Next's dependency graph.                                                    | `package.json`, `pnpm-lock.yaml`                                                            | FIXED                                        |
 
 ## Generated And Expanded Suites
 
@@ -92,17 +96,18 @@ Fixes:
 - `tests/security/consent.test.ts`
 - `tests/security/compliance.copy.test.ts`
 - `tests/security/input.fuzz.test.ts`
+- `tests/security/identity-vault.test.ts`
 - Existing support suites also remain green: headers, middleware, and rate limit tests.
 
 ## Go / No-Go
 
-**NO-GO for real borrower data.**
+**NO-GO for real borrower data until the human penetration test and
+production-equivalent backup/restore evidence are complete.**
 
 The app is materially stronger after this pass, and the remediated High issues
-are re-tested green. However, launch with real borrower data must wait until:
+are re-tested green. The 2026-06-11 follow-up also closed the known code-side
+items. Launch with real borrower data must still wait until:
 
-1. `BorrowerIdentity` field-level encryption and phone blind indexing are implemented and migrated.
-2. The full external §0.4 authorization matrix is available and covered cell-by-cell.
-3. External human penetration testing is completed and all High/Critical findings are fixed.
-4. Backup encryption, restore testing, and rollback evidence are verified.
-5. A real gitleaks or equivalent secret-scanning gate is installed in CI.
+1. External human penetration testing is completed and all High/Critical findings are fixed.
+2. A production-equivalent restore drill is recorded using `docs/backup-restore-runbook.md`.
+3. Any differences between the old external §0.4 matrix and `docs/authorization-matrix.md` are reconciled.

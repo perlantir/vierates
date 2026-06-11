@@ -1,4 +1,5 @@
 import { Role, StateStatus } from "@prisma/client";
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 import { can } from "../../lib/authz";
@@ -6,6 +7,147 @@ import { getLenderPortalData } from "../../lib/lender/portal";
 import { prisma } from "../../lib/prisma";
 
 describe("security: authorization matrix", () => {
+  const listing = {
+    borrowerUserId: "borrower_a",
+    loanAmount: 300000,
+    purpose: "REFINANCE",
+    state: "IL",
+    stateStatus: StateStatus.GREEN,
+    type: "listing" as const,
+  };
+  const coverageBox = {
+    loanMax: 500000,
+    loanMin: 100000,
+    purposes: ["REFINANCE"],
+    states: ["IL"],
+  };
+
+  it("keeps a repo-owned authorization matrix", () => {
+    const matrix = readFileSync("docs/authorization-matrix.md", "utf8");
+
+    for (const phrase of [
+      "Unauthenticated",
+      "Borrower",
+      "Lender LO",
+      "Lender org admin",
+      "Pending lender org",
+      "Admin",
+    ]) {
+      expect(matrix).toContain(phrase);
+    }
+  });
+
+  it.each([
+    {
+      action: "listing:read" as const,
+      actor: null,
+      allowed: false,
+      name: "unauthenticated actors fail closed",
+      resource: listing,
+    },
+    {
+      action: "listing:read" as const,
+      actor: { role: Role.BORROWER, userId: "borrower_a" },
+      allowed: true,
+      name: "borrowers read own listings",
+      resource: listing,
+    },
+    {
+      action: "listing:update" as const,
+      actor: { role: Role.BORROWER, userId: "borrower_b" },
+      allowed: false,
+      name: "borrowers cannot update other borrower listings",
+      resource: listing,
+    },
+    {
+      action: "listing:read:masked" as const,
+      actor: { lenderOrgId: "org_a", role: Role.LENDER, userId: "lo_a" },
+      allowed: true,
+      name: "lenders can read masked covered green listings",
+      resource: { ...listing, coverageBox },
+    },
+    {
+      action: "listing:read:masked" as const,
+      actor: { lenderOrgId: "org_a", role: Role.LENDER, userId: "lo_a" },
+      allowed: false,
+      name: "lenders cannot read masked non-green listings",
+      resource: {
+        ...listing,
+        coverageBox,
+        stateStatus: StateStatus.YELLOW,
+      },
+    },
+    {
+      action: "identity:read" as const,
+      actor: { lenderOrgId: "org_a", role: Role.LENDER, userId: "lo_a" },
+      allowed: false,
+      name: "lenders cannot read identity before grant",
+      resource: {
+        borrowerUserId: "borrower_a",
+        hasIdentityGrant: false,
+        lenderOrgId: "org_a",
+        type: "identity" as const,
+      },
+    },
+    {
+      action: "identity:read" as const,
+      actor: { lenderOrgId: "org_a", role: Role.LENDER, userId: "lo_a" },
+      allowed: true,
+      name: "lenders can read identity after same-org grant",
+      resource: {
+        borrowerUserId: "borrower_a",
+        hasIdentityGrant: true,
+        lenderOrgId: "org_a",
+        type: "identity" as const,
+      },
+    },
+    {
+      action: "billing:manage" as const,
+      actor: {
+        lenderOrgId: "org_a",
+        orgRole: "LO" as const,
+        role: Role.LENDER,
+        userId: "lo_a",
+      },
+      allowed: false,
+      name: "LOs cannot manage billing",
+      resource: { lenderOrgId: "org_a", type: "lenderOrg" as const },
+    },
+    {
+      action: "billing:manage" as const,
+      actor: {
+        lenderOrgId: "org_a",
+        orgRole: "ORG_ADMIN" as const,
+        role: Role.LENDER,
+        userId: "admin_a",
+      },
+      allowed: true,
+      name: "org admins can manage same-org billing",
+      resource: { lenderOrgId: "org_a", type: "lenderOrg" as const },
+    },
+    {
+      action: "wallet:read" as const,
+      actor: {
+        lenderOrgId: "org_b",
+        orgRole: "ORG_ADMIN" as const,
+        role: Role.LENDER,
+        userId: "admin_b",
+      },
+      allowed: false,
+      name: "lenders cannot read another org wallet",
+      resource: { lenderOrgId: "org_a", type: "lenderOrg" as const },
+    },
+    {
+      action: "stateRule:manage" as const,
+      actor: { role: Role.ADMIN, userId: "admin" },
+      allowed: true,
+      name: "admins manage state rules",
+      resource: { type: "admin" as const },
+    },
+  ])("$name", ({ action, actor, allowed, resource }) => {
+    expect(can(actor, action, resource)).toBe(allowed);
+  });
+
   it("fails closed for unauthenticated actors", () => {
     expect(
       can(null, "listing:read", {

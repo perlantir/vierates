@@ -1,8 +1,12 @@
 import { ConsentType, PrismaClient } from "@prisma/client";
 import { expect, type Page, test } from "@playwright/test";
 
+import { borrowerPhoneHash } from "../../lib/security/borrower-identity-vault";
+
 process.env.DATABASE_URL ??=
   "postgresql://vierates:vierates@localhost:54329/vierates?schema=public";
+process.env.BORROWER_IDENTITY_KEY ??=
+  "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
 
 const prisma = new PrismaClient();
 
@@ -51,7 +55,7 @@ test("borrower completes the listing wizard and writes SMS consent", async ({
         },
       },
     },
-    where: { phone },
+    where: { phoneHash: borrowerPhoneHash(phone) },
   });
 
   expect(identity?.user.listings.at(0)?.state).toBe("IL");

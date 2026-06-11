@@ -26,4 +26,15 @@ describe("environment validation", () => {
       }),
     ).toThrow(/STRIPE_SECRET_KEY/);
   });
+
+  it("requires a strong borrower identity encryption key", () => {
+    setValidTestEnv();
+
+    expect(() =>
+      loadEnv({
+        ...process.env,
+        BORROWER_IDENTITY_KEY: "too-short",
+      }),
+    ).toThrow(/BORROWER_IDENTITY_KEY/);
+  });
 });

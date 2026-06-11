@@ -12,6 +12,10 @@ import { z } from "zod";
 import { smsOptInText } from "@/lib/borrower/shared";
 import { sha256 } from "@/lib/consent/records";
 import { assertTwilioStubAllowed } from "@/lib/integrations/twilio";
+import {
+  borrowerIdentityVaultData,
+  borrowerPhoneHash,
+} from "@/lib/security/borrower-identity-vault";
 
 const activeListingStatuses = [
   ListingStatus.DRAFT,
@@ -302,14 +306,21 @@ export async function verifyOtpChallenge(
     await tx.borrowerIdentity.upsert({
       where: { userId: user.id },
       update: {
-        phone: challenge.phone,
+        ...borrowerIdentityVaultData({
+          email: `${challenge.phone}@borrower.vierates.local`,
+          firstName: "Anonymous",
+          lastName: "Borrower",
+          phone: challenge.phone,
+        }),
         phoneVerifiedAt: now,
       },
       create: {
-        email: `${challenge.phone}@borrower.vierates.local`,
-        firstName: "Anonymous",
-        lastName: "Borrower",
-        phone: challenge.phone,
+        ...borrowerIdentityVaultData({
+          email: `${challenge.phone}@borrower.vierates.local`,
+          firstName: "Anonymous",
+          lastName: "Borrower",
+          phone: challenge.phone,
+        }),
         phoneVerifiedAt: now,
         userId: user.id,
       },
@@ -357,7 +368,7 @@ export async function createListingFromWizard(
   }
 
   const borrowerIdentity = await db.borrowerIdentity.findFirst({
-    where: { phone: challenge.phone },
+    where: { phoneHash: borrowerPhoneHash(challenge.phone) },
     select: { userId: true },
   });
 
@@ -446,7 +457,7 @@ export async function captureBorrowerFunnelEvent(
 async function assertNoActiveListingForPhone(db: PrismaClient, phone: string) {
   const activeIdentity = await db.borrowerIdentity.findFirst({
     where: {
-      phone,
+      phoneHash: borrowerPhoneHash(phone),
       user: {
         listings: {
           some: {

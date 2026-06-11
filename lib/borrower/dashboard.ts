@@ -1,6 +1,7 @@
 import { ListingStatus, PrismaClient } from "@prisma/client";
 
 import { prisma } from "@/lib/prisma";
+import { decryptBorrowerIdentityField } from "@/lib/security/borrower-identity-vault";
 
 export type BorrowerDashboardData = Awaited<
   ReturnType<typeof getBorrowerDashboardData>
@@ -63,7 +64,7 @@ export async function deleteBorrowerListingAndVault(
 ) {
   return db.$transaction(async (tx) => {
     const identity = await tx.borrowerIdentity.findUnique({
-      select: { phone: true },
+      select: { phoneEncrypted: true },
       where: { userId: input.borrowerUserId },
     });
 
@@ -83,9 +84,11 @@ export async function deleteBorrowerListingAndVault(
       where: { userId: input.borrowerUserId },
     });
 
-    if (identity?.phone) {
+    if (identity?.phoneEncrypted) {
       await tx.listingDraft.deleteMany({
-        where: { phone: identity.phone },
+        where: {
+          phone: decryptBorrowerIdentityField("phone", identity.phoneEncrypted),
+        },
       });
     }
 

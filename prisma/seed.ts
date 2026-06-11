@@ -8,6 +8,8 @@ import {
   StateStatus,
 } from "@prisma/client";
 
+import { borrowerIdentityVaultData } from "../lib/security/borrower-identity-vault";
+
 const prisma = new PrismaClient();
 
 const states = [
@@ -279,19 +281,23 @@ async function seedListings() {
     await prisma.borrowerIdentity.upsert({
       where: { userId: borrowerUserId },
       update: {
-        firstName: `Demo${listingNumber}`,
-        lastName: "Borrower",
-        email: `demo.borrower.${listingNumber}@example.com`,
-        phone: `31255501${listingNumber.toString().padStart(2, "0")}`,
+        ...borrowerIdentityVaultData({
+          email: `demo.borrower.${listingNumber}@example.com`,
+          firstName: `Demo${listingNumber}`,
+          lastName: "Borrower",
+          phone: `31255501${listingNumber.toString().padStart(2, "0")}`,
+        }),
         phoneVerifiedAt: new Date("2026-06-10T12:00:00.000Z"),
       },
       create: {
         id: `seed_borrower_identity_${listingNumber}`,
         userId: borrowerUserId,
-        firstName: `Demo${listingNumber}`,
-        lastName: "Borrower",
-        email: `demo.borrower.${listingNumber}@example.com`,
-        phone: `31255501${listingNumber.toString().padStart(2, "0")}`,
+        ...borrowerIdentityVaultData({
+          email: `demo.borrower.${listingNumber}@example.com`,
+          firstName: `Demo${listingNumber}`,
+          lastName: "Borrower",
+          phone: `31255501${listingNumber.toString().padStart(2, "0")}`,
+        }),
         phoneVerifiedAt: new Date("2026-06-10T12:00:00.000Z"),
       },
     });

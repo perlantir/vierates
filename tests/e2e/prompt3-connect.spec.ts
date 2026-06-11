@@ -1,8 +1,12 @@
 import { ConsentType, ListingStatus, PrismaClient, Role } from "@prisma/client";
 import { expect, test } from "@playwright/test";
 
+import { borrowerIdentityVaultData } from "../../lib/security/borrower-identity-vault";
+
 process.env.DATABASE_URL ??=
   "postgresql://vierates:vierates@localhost:54329/vierates?schema=public";
+process.env.BORROWER_IDENTITY_KEY ??=
+  "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
 
 const prisma = new PrismaClient();
 
@@ -20,10 +24,12 @@ test("borrower requests and closes a lender introduction", async ({ page }) => {
   });
   await prisma.borrowerIdentity.create({
     data: {
-      email: `connect-${suffix}@example.com`,
-      firstName: "Connect",
-      lastName: "Borrower",
-      phone: `312779${String(1000 + (Date.now() % 8000)).padStart(4, "0")}`,
+      ...borrowerIdentityVaultData({
+        email: `connect-${suffix}@example.com`,
+        firstName: "Connect",
+        lastName: "Borrower",
+        phone: `312779${String(1000 + (Date.now() % 8000)).padStart(4, "0")}`,
+      }),
       userId: user.id,
     },
   });

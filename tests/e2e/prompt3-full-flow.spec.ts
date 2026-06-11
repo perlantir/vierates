@@ -1,8 +1,12 @@
 import { AuctionStatus, ConsentType, PrismaClient } from "@prisma/client";
 import { expect, type Page, test } from "@playwright/test";
 
+import { borrowerPhoneHash } from "../../lib/security/borrower-identity-vault";
+
 process.env.DATABASE_URL ??=
   "postgresql://vierates:vierates@localhost:54329/vierates?schema=public";
+process.env.BORROWER_IDENTITY_KEY ??=
+  "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
 
 const prisma = new PrismaClient();
 
@@ -39,7 +43,7 @@ test("full borrower flow writes all prompt 3 consents and schedules auction", as
 
   const createdIdentity = await prisma.borrowerIdentity.findFirstOrThrow({
     select: { userId: true },
-    where: { phone },
+    where: { phoneHash: borrowerPhoneHash(phone) },
   });
   await page.context().addCookies([
     {
@@ -80,7 +84,7 @@ test("full borrower flow writes all prompt 3 consents and schedules auction", as
         },
       },
     },
-    where: { phone },
+    where: { phoneHash: borrowerPhoneHash(phone) },
   });
 
   const consentTypes = new Set(

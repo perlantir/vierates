@@ -6,6 +6,7 @@ import {
   startOtpChallenge,
   verifyOtpChallenge,
 } from "../lib/borrower/wizard";
+import { borrowerIdentityVaultData } from "../lib/security/borrower-identity-vault";
 import { setValidTestEnv } from "./helpers/env";
 
 setValidTestEnv();
@@ -66,10 +67,12 @@ describe("borrower OTP abuse controls", () => {
 
     await prisma.borrowerIdentity.create({
       data: {
-        email: `${testPhones[1]}@borrower.vierates.local`,
-        firstName: "Anonymous",
-        lastName: "Borrower",
-        phone: testPhones[1],
+        ...borrowerIdentityVaultData({
+          email: `${testPhones[1]}@borrower.vierates.local`,
+          firstName: "Anonymous",
+          lastName: "Borrower",
+          phone: testPhones[1],
+        }),
         userId: user.id,
       },
     });
