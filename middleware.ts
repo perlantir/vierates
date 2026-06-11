@@ -1,5 +1,5 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 const isProtectedRoute = createRouteMatcher([
   "/app(.*)",
@@ -11,18 +11,33 @@ function e2eMiddleware() {
   return applySecurityHeaders(NextResponse.next());
 }
 
+function publicOnlyMiddleware(request: NextRequest) {
+  if (isProtectedRoute(request)) {
+    return applySecurityHeaders(
+      NextResponse.json(
+        { error: "Authentication is not configured." },
+        { status: 503 },
+      ),
+    );
+  }
+
+  return applySecurityHeaders(NextResponse.next());
+}
+
 const middleware =
   process.env.VIERATES_E2E === "true"
     ? e2eMiddleware
-    : clerkMiddleware(async (auth, request) => {
-        const response = NextResponse.next();
+    : clerkEnvConfigured()
+      ? clerkMiddleware(async (auth, request) => {
+          const response = NextResponse.next();
 
-        if (isProtectedRoute(request)) {
-          await auth.protect();
-        }
+          if (isProtectedRoute(request)) {
+            await auth.protect();
+          }
 
-        return applySecurityHeaders(response);
-      });
+          return applySecurityHeaders(response);
+        })
+      : publicOnlyMiddleware;
 
 export default middleware;
 
@@ -58,4 +73,11 @@ function applySecurityHeaders(response: NextResponse): NextResponse {
   );
 
   return response;
+}
+
+function clerkEnvConfigured(): boolean {
+  return Boolean(
+    process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY &&
+    process.env.CLERK_SECRET_KEY,
+  );
 }
