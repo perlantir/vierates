@@ -57,6 +57,7 @@ export default async function BorrowerAuctionPage({
 
   const bids: BorrowerBidRoomBid[] = auction.bids.map((bid) => ({
     aprBp: bid.aprBp,
+    asOfDate: bid.createdAt.toISOString(),
     conditions: bid.conditions,
     feesLabel: feeSummary(bid.lenderFees),
     id: bid.id,

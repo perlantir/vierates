@@ -55,11 +55,38 @@ describe("security: compliance copy", () => {
   });
 
   it("routes rate-bearing UI through RateDisplay", () => {
-    const rateFiles = ["components/borrower/verify/verification-flow.tsx"];
+    const rateFiles = [
+      "components/bid-card.tsx",
+      "components/borrower/bid-room.tsx",
+      "components/borrower/verify/verification-flow.tsx",
+    ];
 
     for (const file of rateFiles) {
-      expect(readFileSync(file, "utf8")).not.toMatch(/\brate=["']\d/);
+      const text = readFileSync(file, "utf8");
+
+      expect(text).not.toMatch(/\brate=["']\d/);
+
+      if (file !== "components/borrower/verify/verification-flow.tsx") {
+        expect(text).toContain("RateDisplay");
+      }
     }
+
+    const bidRoom = readFileSync("components/borrower/bid-room.tsx", "utf8");
+    const auctionPage = readFileSync(
+      "app/(borrower)/app/auction/[auctionId]/page.tsx",
+      "utf8",
+    );
+
+    expect(bidRoom).toMatch(/<RateDisplay[\s\S]*apr={formatBp\(bid\.aprBp\)/);
+    expect(bidRoom).toMatch(/<RateDisplay[\s\S]*rate={formatBp\(bid\.rateBp\)/);
+    expect(bidRoom).toMatch(
+      /<RateDisplay[\s\S]*asOfDate={formatDisplayDate\(bid\.asOfDate\)/,
+    );
+    expect(bidRoom).toMatch(
+      /<RateDisplay[\s\S]*assumptions={bidAssumptions\(bid\)/,
+    );
+    expect(bidRoom).not.toMatch(/<Metric\s+label="Rate"/);
+    expect(auctionPage).toContain("asOfDate: bid.createdAt.toISOString()");
   });
 });
 

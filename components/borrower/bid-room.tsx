@@ -2,10 +2,12 @@
 
 import { useState } from "react";
 
+import { RateDisplay } from "@/components/rate-display";
 import { Button } from "@/components/ui/button";
 
 export type BorrowerBidRoomBid = {
   aprBp: number;
+  asOfDate: string;
   conditions?: string | null;
   feesLabel: string;
   id: string;
@@ -113,17 +115,16 @@ export function BorrowerBidRoom({ auction, bids }: BorrowerBidRoomProps) {
                         {humanize(bid.product)} · {bid.program}
                       </p>
                     </div>
-                    <div className="text-left sm:text-right">
-                      <p className="vr-data text-4xl font-medium leading-none text-ink">
-                        {formatBp(bid.aprBp)}
-                      </p>
-                      <p className="mt-1 text-xs font-semibold text-slate">
-                        APR
-                      </p>
+                    <div className="max-w-sm text-left sm:text-right">
+                      <RateDisplay
+                        apr={formatBp(bid.aprBp)}
+                        asOfDate={formatDisplayDate(bid.asOfDate)}
+                        assumptions={bidAssumptions(bid)}
+                        rate={formatBp(bid.rateBp)}
+                      />
                     </div>
                   </div>
-                  <dl className="mt-4 grid gap-3 sm:grid-cols-4">
-                    <Metric label="Rate" value={formatBp(bid.rateBp)} />
+                  <dl className="mt-4 grid gap-3 sm:grid-cols-3">
                     <Metric label="Points" value={bid.points} />
                     <Metric label="Lock" value={`${bid.lockDays} days`} />
                     <Metric label="Fees" value={bid.feesLabel} />
@@ -186,6 +187,18 @@ function Metric({ label, value }: { label: string; value: string }) {
 
 function formatBp(value: number): string {
   return `${(value / 100).toFixed(3)}%`;
+}
+
+function formatDisplayDate(value: string): string {
+  return new Date(value).toLocaleDateString("en-US", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+}
+
+function bidAssumptions(bid: BorrowerBidRoomBid): string {
+  return `${humanize(bid.product)} ${bid.program}; ${bid.lockDays}-day lock; fees ${bid.feesLabel}; ${bid.points} points.`;
 }
 
 function humanize(value: string): string {
