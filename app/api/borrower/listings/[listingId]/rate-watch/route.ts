@@ -3,7 +3,11 @@ import { z } from "zod";
 
 import { getCurrentBorrowerUserId } from "@/lib/borrower/current";
 import { setRateWatchFlag } from "@/lib/borrower/dashboard";
-import { readJsonBody, rejectLargePayload } from "@/lib/http/request-guards";
+import {
+  enforceRateLimit,
+  readJsonBody,
+  rejectLargePayload,
+} from "@/lib/http/request-guards";
 import { prisma } from "@/lib/prisma";
 
 type RateWatchRouteContext = {
@@ -20,6 +24,17 @@ export async function POST(request: Request, context: RateWatchRouteContext) {
 
   if (!borrowerUserId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const rateLimited = await enforceRateLimit(request, {
+    key: borrowerUserId,
+    limit: 60,
+    prefix: "borrower:rate-watch",
+    window: "1 h",
+  });
+
+  if (rateLimited) {
+    return rateLimited;
   }
 
   const payloadTooLarge = rejectLargePayload(request, 8_192);

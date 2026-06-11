@@ -6,7 +6,11 @@ import {
   recordCreditVerification,
   VerificationFlowError,
 } from "@/lib/borrower/verification";
-import { readJsonBody, rejectLargePayload } from "@/lib/http/request-guards";
+import {
+  enforceRateLimit,
+  readJsonBody,
+  rejectLargePayload,
+} from "@/lib/http/request-guards";
 import { prisma } from "@/lib/prisma";
 
 const verifySchema = z.object({
@@ -19,6 +23,17 @@ export async function POST(request: Request) {
 
   if (!borrowerUserId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const rateLimited = await enforceRateLimit(request, {
+    key: borrowerUserId,
+    limit: 30,
+    prefix: "borrower:verify-credit",
+    window: "1 h",
+  });
+
+  if (rateLimited) {
+    return rateLimited;
   }
 
   const payloadTooLarge = rejectLargePayload(request, 8_192);

@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 
 import {
   honorSmsStop,
+  notificationRecipientIndex,
   notificationTemplates,
   sendNotificationSms,
 } from "../lib/services/notifications";
@@ -15,11 +16,13 @@ const testPhone = "3125558811";
 
 describe("notifications", () => {
   beforeEach(async () => {
+    const recipient = notificationRecipientIndex("sms", testPhone);
+
     await prisma.notificationLog.deleteMany({
-      where: { recipient: testPhone },
+      where: { recipient: { in: [recipient, testPhone] } },
     });
     await prisma.smsOptOut.deleteMany({
-      where: { phone: testPhone },
+      where: { phone: { in: [recipient, testPhone] } },
     });
   });
 
@@ -35,7 +38,10 @@ describe("notifications", () => {
       body: "STOP",
       from: testPhone,
     });
+    const recipient = notificationRecipientIndex("sms", testPhone);
+
     expect(stopResult.optedOut).toBe(true);
+    expect(stopResult.phone).toBe(recipient);
 
     const log = await sendNotificationSms(prisma, {
       message:
@@ -45,5 +51,13 @@ describe("notifications", () => {
     });
 
     expect(log.status).toBe("SKIPPED_OPT_OUT");
+    expect(log.recipient).toBe(recipient);
+    expect(log.recipient).not.toBe(testPhone);
+    await expect(
+      prisma.smsOptOut.findUnique({ where: { phone: recipient } }),
+    ).resolves.toBeTruthy();
+    await expect(
+      prisma.smsOptOut.findUnique({ where: { phone: testPhone } }),
+    ).resolves.toBeNull();
   });
 });

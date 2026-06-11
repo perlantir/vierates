@@ -1,7 +1,10 @@
 import { ListingStatus, PrismaClient } from "@prisma/client";
 
 import { prisma } from "@/lib/prisma";
-import { decryptBorrowerIdentityField } from "@/lib/security/borrower-identity-vault";
+import {
+  borrowerPhoneHash,
+  decryptBorrowerIdentityField,
+} from "@/lib/security/borrower-identity-vault";
 
 export type BorrowerDashboardData = Awaited<
   ReturnType<typeof getBorrowerDashboardData>
@@ -85,9 +88,19 @@ export async function deleteBorrowerListingAndVault(
     });
 
     if (identity?.phoneEncrypted) {
+      const phone = decryptBorrowerIdentityField(
+        "phone",
+        identity.phoneEncrypted,
+      );
+
       await tx.listingDraft.deleteMany({
         where: {
-          phone: decryptBorrowerIdentityField("phone", identity.phoneEncrypted),
+          phone,
+        },
+      });
+      await tx.otpChallenge.deleteMany({
+        where: {
+          phoneHash: borrowerPhoneHash(phone),
         },
       });
     }

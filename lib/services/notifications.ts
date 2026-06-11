@@ -3,6 +3,7 @@ import type { Prisma, PrismaClient } from "@prisma/client";
 import { normalizePhone } from "@/lib/borrower/wizard";
 import { assertResendStubAllowed } from "@/lib/integrations/resend";
 import { assertTwilioStubAllowed } from "@/lib/integrations/twilio";
+import { sensitiveBlindIndex } from "@/lib/security/borrower-identity-vault";
 
 const smsStopSuffix = "Reply STOP to opt out.";
 
@@ -66,12 +67,13 @@ export async function sendNotificationEmail(
 ) {
   // TODO(integration): real Resend email delivery.
   assertResendStubAllowed();
+  const recipient = notificationRecipientIndex("email", input.to);
 
   return db.notificationLog.create({
     data: {
       channel: "EMAIL",
       payload: input.payload ?? {},
-      recipient: input.to,
+      recipient,
       status: "DEMO_SENT",
       template: input.template,
     },
@@ -91,15 +93,16 @@ export async function sendNotificationSms(
   assertTwilioStubAllowed();
 
   const phone = normalizePhone(input.to);
+  const recipient = notificationRecipientIndex("sms", phone);
   const optedOut = await db.smsOptOut.findUnique({
-    where: { phone },
+    where: { phone: recipient },
   });
 
   return db.notificationLog.create({
     data: {
       channel: "SMS",
       payload: input.payload ?? {},
-      recipient: phone,
+      recipient,
       status: optedOut ? "SKIPPED_OPT_OUT" : "DEMO_SENT",
       template: input.template,
     },
@@ -112,26 +115,39 @@ export async function honorSmsStop(
 ) {
   const normalizedBody = input.body.trim().toUpperCase();
   const phone = normalizePhone(input.from);
+  const recipient = notificationRecipientIndex("sms", phone);
 
   if (
     !["STOP", "STOPALL", "UNSUBSCRIBE", "CANCEL", "END", "QUIT"].includes(
       normalizedBody,
     )
   ) {
-    return { optedOut: false, phone };
+    return { optedOut: false, phone: recipient };
   }
 
   await db.smsOptOut.upsert({
-    create: { phone },
+    create: { phone: recipient },
     update: {},
-    where: { phone },
+    where: { phone: recipient },
   });
 
-  return { optedOut: true, phone };
+  return { optedOut: true, phone: recipient };
 }
 
 export function withSmsStop(message: string): string {
   return message.endsWith(smsStopSuffix)
     ? message
     : `${message} ${smsStopSuffix}`;
+}
+
+export function notificationRecipientIndex(
+  channel: "email" | "sms",
+  recipient: string,
+): string {
+  const normalized =
+    channel === "email"
+      ? recipient.trim().toLowerCase()
+      : normalizePhone(recipient);
+
+  return sensitiveBlindIndex(`notification:${channel}`, normalized);
 }

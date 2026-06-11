@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import { getCurrentBorrowerUserId } from "@/lib/borrower/current";
 import { deleteBorrowerListingAndVault } from "@/lib/borrower/dashboard";
+import { enforceRateLimit } from "@/lib/http/request-guards";
 import { prisma } from "@/lib/prisma";
 
 type ListingRouteContext = {
@@ -14,6 +15,17 @@ export async function DELETE(request: Request, context: ListingRouteContext) {
 
   if (!borrowerUserId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const rateLimited = await enforceRateLimit(request, {
+    key: borrowerUserId,
+    limit: 10,
+    prefix: "borrower:listing-delete",
+    window: "1 h",
+  });
+
+  if (rateLimited) {
+    return rateLimited;
   }
 
   try {

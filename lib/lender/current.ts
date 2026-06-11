@@ -3,6 +3,7 @@ import { auth } from "@clerk/nextjs/server";
 import { cookies } from "next/headers";
 
 import { prisma } from "@/lib/prisma";
+import { demoRuntimeAllowed, e2eRuntimeAllowed } from "@/lib/runtime-mode";
 
 export type CurrentLenderUser = {
   lenderOrgId: string;
@@ -10,7 +11,7 @@ export type CurrentLenderUser = {
 };
 
 export async function getCurrentLenderOrgId(): Promise<string | null> {
-  if (process.env.VIERATES_E2E === "true") {
+  if (e2eRuntimeAllowed()) {
     const cookieStore = await cookies();
     const orgId = cookieStore.get("vierates_e2e_lender_org_id")?.value;
 
@@ -26,7 +27,7 @@ export async function getCurrentLenderOrgId(): Promise<string | null> {
     }
   }
 
-  if (!demoAuthFallbackAllowed()) {
+  if (!demoRuntimeAllowed()) {
     const session = await safeAuth();
 
     if (!session.userId) {
@@ -60,7 +61,7 @@ export async function getCurrentLenderOrgId(): Promise<string | null> {
 }
 
 export async function getCurrentLenderUser(): Promise<CurrentLenderUser | null> {
-  if (process.env.VIERATES_E2E === "true") {
+  if (e2eRuntimeAllowed()) {
     const cookieStore = await cookies();
     const lenderUserId = cookieStore.get("vierates_e2e_lender_user_id")?.value;
     const lenderOrgId = cookieStore.get("vierates_e2e_lender_org_id")?.value;
@@ -110,7 +111,7 @@ export async function getCurrentLenderUser(): Promise<CurrentLenderUser | null> 
     }
   }
 
-  if (!demoAuthFallbackAllowed()) {
+  if (!demoRuntimeAllowed()) {
     const session = await safeAuth();
 
     if (!session.userId) {
@@ -156,14 +157,6 @@ export async function getCurrentLenderUser(): Promise<CurrentLenderUser | null> 
   return lenderUser
     ? { lenderOrgId: lenderUser.lenderOrgId, lenderUserId: lenderUser.id }
     : null;
-}
-
-function demoAuthFallbackAllowed(): boolean {
-  return (
-    process.env.DEMO_MODE === "true" &&
-    process.env.NODE_ENV !== "production" &&
-    process.env.VERCEL_ENV !== "production"
-  );
 }
 
 async function safeAuth(): ReturnType<typeof auth> {

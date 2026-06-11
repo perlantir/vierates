@@ -16,6 +16,19 @@ describe("environment validation", () => {
     ).toThrow(/DEMO_MODE cannot be true in production/);
   });
 
+  it("forbids VIERATES_E2E in production", () => {
+    setValidTestEnv();
+
+    expect(() =>
+      loadEnv({
+        ...process.env,
+        DEMO_MODE: "false",
+        NODE_ENV: "production",
+        VIERATES_E2E: "true",
+      }),
+    ).toThrow(/VIERATES_E2E cannot be true in production/);
+  });
+
   it("rejects placeholder Stripe secrets", () => {
     setValidTestEnv();
 

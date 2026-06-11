@@ -2,9 +2,10 @@ import { Role } from "@prisma/client";
 import { auth } from "@clerk/nextjs/server";
 
 import { prisma } from "@/lib/prisma";
+import { e2eRuntimeAllowed } from "@/lib/runtime-mode";
 
 export async function getCurrentAdminUserId(): Promise<string | null> {
-  if (process.env.VIERATES_E2E === "true") {
+  if (e2eRuntimeAllowed()) {
     return "e2e-admin";
   }
 

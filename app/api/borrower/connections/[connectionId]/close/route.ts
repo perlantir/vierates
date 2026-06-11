@@ -5,6 +5,7 @@ import {
   ConnectFlowError,
 } from "@/lib/borrower/connect";
 import { getCurrentBorrowerUserId } from "@/lib/borrower/current";
+import { enforceRateLimit } from "@/lib/http/request-guards";
 import { prisma } from "@/lib/prisma";
 
 type CloseRouteContext = {
@@ -17,6 +18,17 @@ export async function POST(_request: Request, context: CloseRouteContext) {
 
   if (!borrowerUserId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const rateLimited = await enforceRateLimit(_request, {
+    key: borrowerUserId,
+    limit: 60,
+    prefix: "borrower:connections-close",
+    window: "1 h",
+  });
+
+  if (rateLimited) {
+    return rateLimited;
   }
 
   try {

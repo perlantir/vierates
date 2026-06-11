@@ -1,6 +1,8 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 
+import { e2eRuntimeAllowed } from "@/lib/runtime-mode";
+
 const isProtectedRoute = createRouteMatcher([
   "/app(.*)",
   "/lender(.*)",
@@ -24,20 +26,19 @@ function publicOnlyMiddleware(request: NextRequest) {
   return applySecurityHeaders(NextResponse.next());
 }
 
-const middleware =
-  process.env.VIERATES_E2E === "true"
-    ? e2eMiddleware
-    : clerkEnvConfigured()
-      ? clerkMiddleware(async (auth, request) => {
-          const response = NextResponse.next();
+const middleware = e2eRuntimeAllowed()
+  ? e2eMiddleware
+  : clerkEnvConfigured()
+    ? clerkMiddleware(async (auth, request) => {
+        const response = NextResponse.next();
 
-          if (isProtectedRoute(request)) {
-            await auth.protect();
-          }
+        if (isProtectedRoute(request)) {
+          await auth.protect();
+        }
 
-          return applySecurityHeaders(response);
-        })
-      : publicOnlyMiddleware;
+        return applySecurityHeaders(response);
+      })
+    : publicOnlyMiddleware;
 
 export default middleware;
 

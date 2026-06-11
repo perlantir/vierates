@@ -307,6 +307,41 @@ describe("security: ledger integrity", () => {
     expect(response.status).toBe(200);
     expect(wallet?.balance).toBe(4);
   });
+
+  it("rejects signed Stripe events with unbounded credit quantities", async () => {
+    const fixture = await createOpenAuctionFixture(0);
+    const payload = JSON.stringify({
+      data: {
+        object: {
+          metadata: {
+            credits: "100000000",
+            lenderOrgId: fixture.lenderOrgId,
+          },
+        },
+      },
+      id: `evt_security_huge_${Date.now()}`,
+      type: "invoice.paid",
+    });
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY ?? "");
+    const signature = stripe.webhooks.generateTestHeaderString({
+      payload,
+      secret: process.env.STRIPE_WEBHOOK_SECRET ?? "",
+    });
+
+    const response = await stripeWebhook(
+      new Request("http://localhost/api/stripe/webhook", {
+        body: payload,
+        headers: { "stripe-signature": signature },
+        method: "POST",
+      }),
+    );
+    const wallet = await prisma.creditWallet.findUnique({
+      where: { lenderOrgId: fixture.lenderOrgId },
+    });
+
+    expect(response.status).toBe(400);
+    expect(wallet?.balance).toBe(0);
+  });
 });
 
 async function createOpenAuctionFixture(

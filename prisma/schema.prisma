@@ -292,6 +292,7 @@ model Rating {
   comment     String?
   createdAt   DateTime  @default(now())
 
+  @@unique([lenderOrgId, listingId])
   @@index([lenderOrgId])
   @@index([listingId])
 }
@@ -308,6 +309,7 @@ model DisputeCase {
   resolution  String?
   createdAt   DateTime  @default(now())
 
+  @@unique([lenderOrgId, listingId, type])
   @@index([listingId])
   @@index([lenderOrgId])
 }

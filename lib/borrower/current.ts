@@ -3,9 +3,10 @@ import { auth } from "@clerk/nextjs/server";
 import { cookies } from "next/headers";
 
 import { prisma } from "@/lib/prisma";
+import { demoRuntimeAllowed, e2eRuntimeAllowed } from "@/lib/runtime-mode";
 
 export async function getCurrentBorrowerUserId(): Promise<string | null> {
-  if (process.env.VIERATES_E2E === "true") {
+  if (e2eRuntimeAllowed()) {
     const cookieStore = await cookies();
     const e2eBorrowerUserId = cookieStore.get(
       "vierates_e2e_borrower_user_id",
@@ -26,7 +27,7 @@ export async function getCurrentBorrowerUserId(): Promise<string | null> {
     }
   }
 
-  if (process.env.VIERATES_E2E === "true" || demoAuthFallbackAllowed()) {
+  if (e2eRuntimeAllowed() || demoRuntimeAllowed()) {
     const newestListing = await prisma.listing.findFirst({
       orderBy: { createdAt: "desc" },
       select: { borrowerUserId: true },
@@ -61,12 +62,4 @@ async function safeAuth(): ReturnType<typeof auth> {
       userId: null,
     } as Awaited<ReturnType<typeof auth>>;
   }
-}
-
-function demoAuthFallbackAllowed(): boolean {
-  return (
-    process.env.DEMO_MODE === "true" &&
-    process.env.NODE_ENV !== "production" &&
-    process.env.VERCEL_ENV !== "production"
-  );
 }

@@ -1,6 +1,8 @@
 import { PrismaClient } from "@prisma/client";
+import { createHmac } from "node:crypto";
 import { beforeEach, describe, expect, it } from "vitest";
 
+import { notificationRecipientIndex } from "../../lib/services/notifications";
 import { resetDemoRateLimits } from "../../lib/rate-limit";
 import { setValidTestEnv } from "../helpers/env";
 
@@ -175,11 +177,8 @@ describe("security: input and mass-assignment fuzz", () => {
     expect(bidResponse.status).toBe(401);
   });
 
-  it("returns 503 instead of 500 when Twilio is not configured", async () => {
+  it("rejects unsigned Twilio SMS webhooks outside demo mode", async () => {
     process.env.DEMO_MODE = "false";
-    delete process.env.CLERK_SECRET_KEY;
-    delete process.env.STRIPE_SECRET_KEY;
-    delete process.env.POSTHOG_KEY;
 
     const smsResponse = await postTwilioSms(
       new Request("http://localhost/api/twilio/sms", {
@@ -187,6 +186,45 @@ describe("security: input and mass-assignment fuzz", () => {
         method: "POST",
       }),
     );
+
+    expect(smsResponse.status).toBe(401);
+  });
+
+  it("accepts signed Twilio STOP webhooks and stores only a recipient index", async () => {
+    process.env.DEMO_MODE = "false";
+    const params = new URLSearchParams({
+      Body: "STOP",
+      From: "+13125550123",
+    });
+    const url = "https://vierates.example/api/twilio/sms";
+    const signature = signTwilioRequest(url, Object.fromEntries(params));
+    const response = await postTwilioSms(
+      new Request(url, {
+        body: params,
+        headers: {
+          "content-type": "application/x-www-form-urlencoded",
+          "x-twilio-signature": signature,
+        },
+        method: "POST",
+      }),
+    );
+    const recipient = notificationRecipientIndex("sms", "3125550123");
+
+    expect(response.status).toBe(200);
+    await expect(
+      prisma.smsOptOut.findUnique({ where: { phone: recipient } }),
+    ).resolves.toBeTruthy();
+    await expect(
+      prisma.smsOptOut.findUnique({ where: { phone: "3125550123" } }),
+    ).resolves.toBeNull();
+  });
+
+  it("returns 503 instead of 500 when OTP delivery is not configured", async () => {
+    process.env.DEMO_MODE = "false";
+    delete process.env.CLERK_SECRET_KEY;
+    delete process.env.STRIPE_SECRET_KEY;
+    delete process.env.POSTHOG_KEY;
+
     const otpResponse = await postOtpStart(
       new Request("http://localhost/api/borrower/otp/start", {
         body: JSON.stringify({ phone: uniquePhone() }),
@@ -195,7 +233,6 @@ describe("security: input and mass-assignment fuzz", () => {
       }),
     );
 
-    expect(smsResponse.status).toBe(503);
     expect(otpResponse.status).toBe(503);
   });
 
@@ -236,11 +273,71 @@ describe("security: input and mass-assignment fuzz", () => {
     expect(org?.status).toBe("PENDING");
     expect(org?.wallet?.balance).toBe(0);
   });
+
+  it("does not let public onboarding rewrite an existing lender org by NMLS", async () => {
+    const suffix = String(Date.now()).slice(-7);
+    const nmlsId = `8${suffix}`;
+    const org = await prisma.lenderOrg.create({
+      data: {
+        legalName: "Protected Approved Lending",
+        nmlsId,
+        statesLicensed: ["IL"],
+        status: "APPROVED",
+      },
+    });
+
+    const response = await postLenderOnboarding(
+      new Request("http://localhost/api/lender/onboarding", {
+        body: JSON.stringify({
+          coverage: {
+            ficoMin: 660,
+            loanMax: 900000,
+            loanMin: 150000,
+            ltvMaxBp: 8500,
+            products: ["30Y_FIXED"],
+            purposes: ["REFINANCE"],
+            states: ["CA"],
+          },
+          legalName: "Attacker Rewrite Lending",
+          nmlsId,
+          orgAdminEmail: `rewrite-${suffix}@example.com`,
+          plan: "PRO",
+          statesLicensed: ["CA"],
+        }),
+        headers: { "content-type": "application/json" },
+        method: "POST",
+      }),
+    );
+    const unchanged = await prisma.lenderOrg.findUniqueOrThrow({
+      where: { id: org.id },
+    });
+
+    expect(response.status).toBe(409);
+    expect(unchanged.legalName).toBe("Protected Approved Lending");
+    expect(unchanged.status).toBe("APPROVED");
+    expect(unchanged.statesLicensed).toEqual(["IL"]);
+  });
 });
 
 function uniquePhone(): string {
   const suffix = String(Date.now()).slice(-7);
   return `312${suffix}`;
+}
+
+function signTwilioRequest(
+  url: string,
+  params: Record<string, string>,
+): string {
+  const payload =
+    url +
+    Object.keys(params)
+      .sort()
+      .map((key) => `${key}${params[key]}`)
+      .join("");
+
+  return createHmac("sha1", process.env.TWILIO_AUTH_TOKEN ?? "")
+    .update(payload)
+    .digest("base64");
 }
 
 async function getLenderBoard(): Promise<Response> {

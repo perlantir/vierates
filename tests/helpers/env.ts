@@ -27,6 +27,7 @@ export function setValidTestEnv(overrides: Partial<NodeJS.ProcessEnv> = {}) {
     TWILIO_VERIFY_SERVICE_SID: "VA00000000000000000000000000000000",
     UPSTASH_REDIS_REST_TOKEN: "upstash_unit_token",
     UPSTASH_REDIS_REST_URL: "https://unit.upstash.io",
+    VIERATES_E2E: "false",
     ...overrides,
   });
 }

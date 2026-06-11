@@ -2,8 +2,7 @@ import { Role } from "@prisma/client";
 import { auth } from "@clerk/nextjs/server";
 
 import type { Actor } from "@/lib/authz";
-
-type ClaimMap = Record<string, unknown>;
+import { prisma } from "@/lib/prisma";
 
 export async function getActorFromClerk(): Promise<Actor | null> {
   const session = await safeAuth();
@@ -12,20 +11,33 @@ export async function getActorFromClerk(): Promise<Actor | null> {
     return null;
   }
 
-  const claims = (session.sessionClaims ?? {}) as ClaimMap;
-  const metadata =
-    readClaimMap(claims.publicMetadata) ?? readClaimMap(claims.metadata);
-  const role = parseRole(metadata?.role);
+  const user = await prisma.user.findUnique({
+    select: {
+      id: true,
+      lenderUser: {
+        select: {
+          lenderOrgId: true,
+          orgRole: true,
+        },
+      },
+      role: true,
+    },
+    where: { clerkId: session.userId },
+  });
 
-  if (!role) {
+  if (!user) {
     return null;
   }
 
   return {
-    userId: session.userId,
-    role,
-    lenderOrgId: readString(metadata?.lenderOrgId),
-    orgRole: parseOrgRole(metadata?.orgRole),
+    userId: user.id,
+    role: user.role,
+    lenderOrgId:
+      user.role === Role.LENDER ? user.lenderUser?.lenderOrgId : undefined,
+    orgRole:
+      user.role === Role.LENDER
+        ? parseOrgRole(user.lenderUser?.orgRole)
+        : undefined,
   };
 }
 
@@ -35,28 +47,6 @@ async function safeAuth(): Promise<Awaited<ReturnType<typeof auth>>> {
   } catch {
     return { userId: null } as Awaited<ReturnType<typeof auth>>;
   }
-}
-
-function readClaimMap(value: unknown): ClaimMap | undefined {
-  if (typeof value === "object" && value !== null && !Array.isArray(value)) {
-    return value as ClaimMap;
-  }
-
-  return undefined;
-}
-
-function readString(value: unknown): string | undefined {
-  return typeof value === "string" && value.length > 0 ? value : undefined;
-}
-
-function parseRole(value: unknown): Role | undefined {
-  const role = readString(value)?.toUpperCase();
-
-  if (role === Role.BORROWER || role === Role.LENDER || role === Role.ADMIN) {
-    return role;
-  }
-
-  return undefined;
 }
 
 function parseOrgRole(value: unknown): Actor["orgRole"] | undefined {

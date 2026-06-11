@@ -22,6 +22,16 @@ export const lenderOnboardingSchema = z.object({
 
 export type LenderOnboardingInput = z.infer<typeof lenderOnboardingSchema>;
 
+export class LenderOnboardingError extends Error {
+  constructor(
+    message: string,
+    public readonly code: string,
+    public readonly status = 400,
+  ) {
+    super(message);
+  }
+}
+
 export async function createPendingLenderOrg(
   db: PrismaClient,
   input: LenderOnboardingInput,
@@ -30,6 +40,36 @@ export async function createPendingLenderOrg(
   const adminEmail = parsed.orgAdminEmail.toLowerCase();
 
   return db.$transaction(async (tx) => {
+    const existingOrg = await tx.lenderOrg.findUnique({
+      select: { id: true },
+      where: { nmlsId: parsed.nmlsId },
+    });
+
+    if (existingOrg) {
+      throw new LenderOnboardingError(
+        "A lender application for this NMLS ID already exists.",
+        "NMLS_ALREADY_SUBMITTED",
+        409,
+      );
+    }
+
+    const existingAdmin = await tx.user.findUnique({
+      select: {
+        lenderUser: {
+          select: { id: true },
+        },
+      },
+      where: { clerkId: `lender-onboarding:${adminEmail}` },
+    });
+
+    if (existingAdmin?.lenderUser) {
+      throw new LenderOnboardingError(
+        "A lender application for this org admin email already exists.",
+        "ADMIN_EMAIL_ALREADY_SUBMITTED",
+        409,
+      );
+    }
+
     const user = await tx.user.upsert({
       create: {
         clerkId: `lender-onboarding:${adminEmail}`,
@@ -39,21 +79,14 @@ export async function createPendingLenderOrg(
       where: { clerkId: `lender-onboarding:${adminEmail}` },
     });
 
-    const org = await tx.lenderOrg.upsert({
-      create: {
+    const org = await tx.lenderOrg.create({
+      data: {
         dba: parsed.dba,
         legalName: parsed.legalName,
         nmlsId: parsed.nmlsId,
         statesLicensed: parsed.statesLicensed,
         status: "PENDING",
       },
-      update: {
-        dba: parsed.dba,
-        legalName: parsed.legalName,
-        statesLicensed: parsed.statesLicensed,
-        status: "PENDING",
-      },
-      where: { nmlsId: parsed.nmlsId },
     });
 
     await tx.lenderUser.upsert({

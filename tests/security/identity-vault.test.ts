@@ -1,11 +1,13 @@
-import { Prisma, PrismaClient, Role } from "@prisma/client";
+import { ListingStatus, Prisma, PrismaClient, Role } from "@prisma/client";
 import { describe, expect, it } from "vitest";
 
 import {
   borrowerIdentityVaultData,
   borrowerPhoneHash,
   decryptBorrowerIdentityField,
+  encryptBorrowerIdentityField,
 } from "../../lib/security/borrower-identity-vault";
+import { deleteBorrowerListingAndVault } from "../../lib/borrower/dashboard";
 import { setValidTestEnv } from "../helpers/env";
 
 setValidTestEnv();
@@ -66,5 +68,69 @@ describe("security: borrower identity vault", () => {
         where: { phoneHash: borrowerPhoneHash(plaintext.phone) },
       }),
     ).toMatchObject({ id: identity.id });
+  });
+
+  it("deletes identity vault and OTP residue on borrower deletion", async () => {
+    const suffix = `${Date.now()}${Math.random().toString(16).slice(2)}`;
+    const phone = `312557${suffix.slice(-4).padStart(4, "0")}`;
+    const user = await prisma.user.create({
+      data: {
+        clerkId: `security-vault-delete:${suffix}`,
+        role: Role.BORROWER,
+      },
+    });
+    await prisma.borrowerIdentity.create({
+      data: {
+        ...borrowerIdentityVaultData({
+          email: `delete-${suffix}@borrower.vierates.local`,
+          firstName: "Delete",
+          lastName: "Borrower",
+          phone,
+        }),
+        userId: user.id,
+      },
+    });
+    const listing = await prisma.listing.create({
+      data: {
+        borrowerUserId: user.id,
+        creditBandStated: "740_PLUS",
+        estValueBand: "$500k-$550k",
+        incomeBandStated: "200K_PLUS",
+        loanAmount: 400000,
+        ltvBand: "60-70",
+        occupancy: "PRIMARY",
+        propertyMatchOk: true,
+        propertyType: "SINGLE_FAMILY",
+        purpose: "REFINANCE",
+        state: "IL",
+        status: ListingStatus.LIVE,
+        timeline: "ASAP",
+      },
+    });
+    await prisma.otpChallenge.create({
+      data: {
+        codeHash: "x".repeat(64),
+        expiresAt: new Date(Date.now() + 60_000),
+        ip: "198.51.100.88",
+        phone: encryptBorrowerIdentityField("phone", phone),
+        phoneHash: borrowerPhoneHash(phone),
+        status: "VERIFIED",
+      },
+    });
+
+    await deleteBorrowerListingAndVault(prisma, {
+      borrowerUserId: user.id,
+      ip: "198.51.100.89",
+      listingId: listing.id,
+    });
+
+    await expect(
+      prisma.borrowerIdentity.findUnique({ where: { userId: user.id } }),
+    ).resolves.toBeNull();
+    await expect(
+      prisma.otpChallenge.findFirst({
+        where: { phoneHash: borrowerPhoneHash(phone) },
+      }),
+    ).resolves.toBeNull();
   });
 });

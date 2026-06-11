@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import {
   createPendingLenderOrg,
+  LenderOnboardingError,
   lenderOnboardingSchema,
 } from "@/lib/lender/onboarding";
 import {
@@ -40,11 +41,25 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid onboarding" }, { status: 400 });
   }
 
-  const org = await createPendingLenderOrg(prisma, parsed.data);
+  try {
+    const org = await createPendingLenderOrg(prisma, parsed.data);
 
-  return NextResponse.json({
-    id: org.id,
-    ok: true,
-    status: org.status,
-  });
+    return NextResponse.json({
+      id: org.id,
+      ok: true,
+      status: org.status,
+    });
+  } catch (error) {
+    if (error instanceof LenderOnboardingError) {
+      return NextResponse.json(
+        { code: error.code, error: error.message },
+        { status: error.status },
+      );
+    }
+
+    return NextResponse.json(
+      { error: "Onboarding could not be submitted" },
+      { status: 500 },
+    );
+  }
 }

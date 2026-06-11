@@ -1,6 +1,8 @@
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
 
+import { demoRuntimeAllowed, e2eRuntimeAllowed } from "@/lib/runtime-mode";
+
 type RateLimitWindow = `${number} ${"s" | "m" | "h" | "d"}`;
 
 type RateLimitInput = {
@@ -100,8 +102,8 @@ function checkDemoFixedWindowRateLimit(input: RateLimitInput): RateLimitResult {
 
 function isLocalRateLimitRuntime(): boolean {
   return (
-    process.env.DEMO_MODE === "true" ||
-    process.env.VIERATES_E2E === "true" ||
+    demoRuntimeAllowed() ||
+    e2eRuntimeAllowed() ||
     process.env.NODE_ENV === "test"
   );
 }

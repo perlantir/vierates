@@ -48,6 +48,12 @@ export function borrowerPhoneHash(phone: string): string {
     .digest("hex");
 }
 
+export function sensitiveBlindIndex(scope: string, value: string): string {
+  return createHmac("sha256", identityIndexKey())
+    .update(`${scope}:${value}`)
+    .digest("hex");
+}
+
 export function decryptBorrowerIdentityField(
   field: IdentityField,
   ciphertext: string,

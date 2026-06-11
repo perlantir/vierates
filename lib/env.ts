@@ -47,6 +47,7 @@ const envSchema = z.object({
   TWILIO_VERIFY_SERVICE_SID: nonPlaceholder.regex(/^VA[A-Za-z0-9]{8,}$/),
   UPSTASH_REDIS_REST_TOKEN: nonPlaceholder,
   UPSTASH_REDIS_REST_URL: z.string().url(),
+  VIERATES_E2E: z.enum(["true", "false"]).optional(),
 });
 
 export type Env = z.infer<typeof envSchema>;
@@ -68,6 +69,13 @@ export function loadEnv(source: NodeJS.ProcessEnv = process.env): Env {
     (source.NODE_ENV === "production" || source.VERCEL_ENV === "production")
   ) {
     throw new Error("DEMO_MODE cannot be true in production.");
+  }
+
+  if (
+    parsed.data.VIERATES_E2E === "true" &&
+    (source.NODE_ENV === "production" || source.VERCEL_ENV === "production")
+  ) {
+    throw new Error("VIERATES_E2E cannot be true in production.");
   }
 
   return parsed.data;

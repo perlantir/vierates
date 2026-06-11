@@ -13,6 +13,7 @@ import { createConsentRecord } from "@/lib/consent/records";
 import { HPPA_OPTIN_TEXT, SOFT_PULL_SENTENCE } from "@/lib/consent/text";
 import { lenderView } from "@/lib/dal/listings";
 import { prisma } from "@/lib/prisma";
+import { demoRuntimeAllowed, e2eRuntimeAllowed } from "@/lib/runtime-mode";
 
 export type VerificationFlowData = Awaited<
   ReturnType<typeof getVerificationFlowData>
@@ -54,7 +55,7 @@ export async function recordCreditVerification(
     userAgent: string;
   },
 ) {
-  if (input.simulateFailure) {
+  if (input.simulateFailure && verificationSimulationAllowed()) {
     return createVerificationFailure(db, {
       borrowerUserId: input.borrowerUserId,
       listingId: input.listingId,
@@ -115,7 +116,7 @@ export async function recordIncomeVerification(
     userAgent: string;
   },
 ) {
-  if (input.simulateFailure) {
+  if (input.simulateFailure && verificationSimulationAllowed()) {
     return createVerificationFailure(db, {
       borrowerUserId: input.borrowerUserId,
       listingId: input.listingId,
@@ -317,6 +318,14 @@ async function assertBorrowerListing(
   }
 
   return listing;
+}
+
+function verificationSimulationAllowed(): boolean {
+  return (
+    process.env.NODE_ENV === "test" ||
+    demoRuntimeAllowed() ||
+    e2eRuntimeAllowed()
+  );
 }
 
 function readVendorRefs(value: unknown): Record<string, unknown> {

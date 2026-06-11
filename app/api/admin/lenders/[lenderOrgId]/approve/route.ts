@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { getCurrentAdminUserId } from "@/lib/admin/current";
+import { enforceRateLimit } from "@/lib/http/request-guards";
 import { prisma } from "@/lib/prisma";
 
 type ApproveContext = {
@@ -13,6 +14,17 @@ export async function POST(_request: Request, context: ApproveContext) {
 
   if (!adminUserId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const rateLimited = await enforceRateLimit(_request, {
+    key: adminUserId,
+    limit: 60,
+    prefix: "admin:lender-approve",
+    window: "1 h",
+  });
+
+  if (rateLimited) {
+    return rateLimited;
   }
 
   const org = await prisma.lenderOrg.update({

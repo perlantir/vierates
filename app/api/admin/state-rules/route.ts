@@ -3,7 +3,11 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { getCurrentAdminUserId } from "@/lib/admin/current";
-import { readJsonBody, rejectLargePayload } from "@/lib/http/request-guards";
+import {
+  enforceRateLimit,
+  readJsonBody,
+  rejectLargePayload,
+} from "@/lib/http/request-guards";
 import { prisma } from "@/lib/prisma";
 
 const stateRuleSchema = z.object({
@@ -17,6 +21,17 @@ export async function POST(request: Request) {
 
   if (!adminUserId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const rateLimited = await enforceRateLimit(request, {
+    key: adminUserId,
+    limit: 60,
+    prefix: "admin:state-rules",
+    window: "1 h",
+  });
+
+  if (rateLimited) {
+    return rateLimited;
   }
 
   const payloadTooLarge = rejectLargePayload(request, 8_192);

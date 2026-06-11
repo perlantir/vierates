@@ -2,7 +2,11 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { getCurrentBorrowerUserId } from "@/lib/borrower/current";
-import { readJsonBody, rejectLargePayload } from "@/lib/http/request-guards";
+import {
+  enforceRateLimit,
+  readJsonBody,
+  rejectLargePayload,
+} from "@/lib/http/request-guards";
 import { prisma } from "@/lib/prisma";
 import {
   createDisputeCase,
@@ -21,6 +25,17 @@ export async function POST(request: Request) {
 
   if (!borrowerUserId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const rateLimited = await enforceRateLimit(request, {
+    key: borrowerUserId,
+    limit: 10,
+    prefix: "borrower:disputes",
+    window: "1 h",
+  });
+
+  if (rateLimited) {
+    return rateLimited;
   }
 
   const payloadTooLarge = rejectLargePayload(request, 16_384);

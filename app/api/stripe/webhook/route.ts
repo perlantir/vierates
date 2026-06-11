@@ -12,7 +12,7 @@ import { prisma } from "@/lib/prisma";
 import { checkFixedWindowRateLimit } from "@/lib/rate-limit";
 
 const stripeEventSchema = z.object({
-  credits: z.number().int().positive(),
+  credits: z.number().int().positive().max(10_000),
   id: z.string().min(1),
   lenderOrgId: z.string().min(1),
   type: z.enum(["invoice.paid", "checkout.session.completed"]),

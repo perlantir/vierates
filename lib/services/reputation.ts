@@ -22,6 +22,22 @@ export async function createPostRevealRating(
 ) {
   await assertRevealGrant(db, input);
 
+  const existing = await db.rating.findFirst({
+    select: { id: true },
+    where: {
+      lenderOrgId: input.lenderOrgId,
+      listingId: input.listingId,
+    },
+  });
+
+  if (existing) {
+    throw new ReputationServiceError(
+      "A rating already exists for this lender and listing.",
+      "RATING_ALREADY_EXISTS",
+      409,
+    );
+  }
+
   return db.rating.create({
     data: {
       comment: input.comment,
@@ -43,6 +59,23 @@ export async function createDisputeCase(
   },
 ) {
   await assertRevealGrant(db, input);
+
+  const existing = await db.disputeCase.findFirst({
+    select: { id: true },
+    where: {
+      lenderOrgId: input.lenderOrgId,
+      listingId: input.listingId,
+      type: input.type,
+    },
+  });
+
+  if (existing) {
+    throw new ReputationServiceError(
+      "A dispute already exists for this lender, listing, and type.",
+      "DISPUTE_ALREADY_EXISTS",
+      409,
+    );
+  }
 
   return db.disputeCase.create({
     data: {
