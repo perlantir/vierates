@@ -53,8 +53,8 @@ function TierCard({
       ].join(" ")}
     >
       <h3 className="font-display text-3xl font-semibold text-ink">{title}</h3>
-      <p className="leading-7 text-ink-90">{body}</p>
-      <ul className="flex flex-col gap-2 text-sm leading-6 text-ink-90">
+      <p className="leading-7 text-text">{body}</p>
+      <ul className="flex flex-col gap-2 text-sm leading-6 text-text">
         {points.map((point) => (
           <li className="flex gap-2" key={point}>
             <CheckIcon />
@@ -75,7 +75,7 @@ function CheckIcon() {
   return (
     <svg
       aria-hidden="true"
-      className="mt-1 h-4 w-4 flex-none text-funded"
+      className="mt-1 h-4 w-4 flex-none text-verified"
       fill="none"
       viewBox="0 0 24 24"
     >

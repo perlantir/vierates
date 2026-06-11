@@ -12,7 +12,7 @@ export function LenderCard({
   legalName,
   nmlsId,
   rating = "New",
-  responseTime = "[STAT]",
+  responseTime = "New",
   specialties,
 }: LenderCardProps) {
   return (
@@ -22,7 +22,7 @@ export function LenderCard({
           {legalName}
         </h3>
         <Link
-          className="vr-data mt-1 inline-block text-sm text-slate"
+          className="vr-data mt-1 inline-block text-sm text-text-muted"
           href="https://www.nmlsconsumeraccess.org"
         >
           NMLS {nmlsId}
@@ -31,7 +31,7 @@ export function LenderCard({
       <div className="flex flex-wrap gap-2">
         {specialties.map((specialty) => (
           <span
-            className="rounded-full border border-line bg-bone px-3 py-1 text-xs font-semibold text-slate"
+            className="rounded-full border border-line bg-paper px-3 py-1 text-xs font-semibold text-text-muted"
             key={specialty}
           >
             {specialty}
@@ -40,11 +40,11 @@ export function LenderCard({
       </div>
       <div className="mt-auto grid grid-cols-2 gap-3 border-t border-line pt-4 text-sm">
         <div>
-          <p className="text-xs text-slate">Avg response</p>
+          <p className="text-xs text-text-muted">Avg response</p>
           <p className="vr-data mt-1 font-semibold">{responseTime}</p>
         </div>
         <div>
-          <p className="text-xs text-slate">Rating</p>
+          <p className="text-xs text-text-muted">Rating</p>
           <p className="vr-data mt-1 font-semibold">{rating}</p>
         </div>
       </div>

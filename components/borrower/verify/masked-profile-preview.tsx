@@ -11,13 +11,13 @@ export function MaskedProfilePreview({ preview }: MaskedProfilePreviewProps) {
         <h2 className="font-sans text-2xl font-semibold text-ink">
           Here&apos;s what lenders see — and what they won&apos;t.
         </h2>
-        <p className="mt-2 text-sm font-semibold text-slate">
+        <p className="mt-2 text-sm font-semibold text-text-muted">
           Hidden until you pick.
         </p>
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
-        <section className="rounded-card border border-line bg-paper p-4">
-          <h3 className="text-sm font-semibold tracking-[0.06em] text-slate">
+        <section className="rounded-card border border-line bg-card p-4">
+          <h3 className="text-sm font-semibold tracking-[0.06em] text-text-muted">
             Lenders see
           </h3>
           <dl className="mt-4 grid gap-3">
@@ -35,20 +35,23 @@ export function MaskedProfilePreview({ preview }: MaskedProfilePreviewProps) {
             <Metric label="Verified DTI" value={preview.dtiBand ?? "Pending"} />
           </dl>
         </section>
-        <section className="rounded-card border border-line bg-paper p-4">
-          <h3 className="text-sm font-semibold tracking-[0.06em] text-slate">
+        <section className="rounded-card border border-line bg-card p-4">
+          <h3 className="text-sm font-semibold tracking-[0.06em] text-text-muted">
             Lenders never see
           </h3>
           <div className="mt-4 grid gap-4">
-            {preview.hiddenFields.map((field) => (
+            {preview.hiddenFields.map((field, index) => (
               <div className="grid gap-2" key={field}>
-                <p className="text-xs font-semibold text-slate">{field}</p>
-                <span className="vr-redaction h-3 w-full" />
+                <p className="text-xs font-semibold text-text-muted">{field}</p>
+                <span
+                  className="vr-redaction h-3"
+                  style={{ width: `${62 + index * 12}%` }}
+                />
               </div>
             ))}
             <div className="grid gap-2">
-              <p className="text-xs font-semibold text-slate">Email</p>
-              <span className="vr-redaction h-3 w-full" />
+              <p className="text-xs font-semibold text-text-muted">Email</p>
+              <span className="vr-redaction h-3 w-[88%]" />
             </div>
           </div>
         </section>
@@ -60,7 +63,7 @@ export function MaskedProfilePreview({ preview }: MaskedProfilePreviewProps) {
 function Metric({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <dt className="text-xs font-semibold text-slate">{label}</dt>
+      <dt className="text-xs font-semibold text-text-muted">{label}</dt>
       <dd className="vr-data mt-1 text-sm font-semibold text-ink">{value}</dd>
     </div>
   );

@@ -59,7 +59,7 @@ export function VerificationFlow({ listing }: VerificationFlowProps) {
 
   if (!listing) {
     return (
-      <main className="vr-section min-h-screen bg-bone">
+      <main className="vr-section min-h-screen bg-paper">
         <div className="vr-frame">
           <EmptyState
             actionHref="/app/new"
@@ -155,7 +155,7 @@ export function VerificationFlow({ listing }: VerificationFlowProps) {
   }
 
   return (
-    <main className="vr-section min-h-screen bg-bone">
+    <main className="vr-section min-h-screen bg-paper">
       <div className="vr-frame">
         <WizardShell
           currentStep={step}
@@ -172,14 +172,14 @@ export function VerificationFlow({ listing }: VerificationFlowProps) {
         >
           {step === 1 ? (
             <div className="grid gap-4">
-              <p className="text-sm leading-6 text-slate">
+              <p className="text-sm leading-6 text-text-muted">
                 {SOFT_PULL_SENTENCE}
               </p>
-              <div className="rounded-card border border-line bg-paper p-4">
+              <div className="rounded-card border border-line bg-card p-4">
                 <p className="text-sm font-semibold text-ink">
                   You&apos;re one step from your Bid Room.
                 </p>
-                <ol className="mt-3 grid gap-2 text-sm leading-6 text-slate">
+                <ol className="mt-3 grid gap-2 text-sm leading-6 text-text-muted">
                   <li>1. Soft credit check with Array</li>
                   <li>2. Income check with Truv</li>
                 </ol>
@@ -232,7 +232,7 @@ export function VerificationFlow({ listing }: VerificationFlowProps) {
 
           {step === 5 ? (
             <div className="grid gap-4" data-testid="verify-done">
-              <p className="text-sm font-semibold text-funded">
+              <p className="text-sm font-semibold text-verified">
                 Your Bid Room opens at{" "}
                 <span className="vr-data">
                   {auction
@@ -241,7 +241,7 @@ export function VerificationFlow({ listing }: VerificationFlowProps) {
                 </span>
                 .
               </p>
-              <p className="text-sm leading-6 text-slate">
+              <p className="text-sm leading-6 text-text-muted">
                 Verified lenders in your coverage box can now prepare bids. Your
                 identity is still hidden.
               </p>
@@ -252,7 +252,7 @@ export function VerificationFlow({ listing }: VerificationFlowProps) {
           ) : null}
 
           {message ? (
-            <p className="mt-4 rounded-ui border border-line bg-bone p-3 text-sm leading-6 text-slate">
+            <p className="mt-4 rounded-ui border border-line bg-paper p-3 text-sm leading-6 text-text-muted">
               {message}
             </p>
           ) : null}
@@ -280,9 +280,9 @@ function SandboxCard({
   title: string;
 }) {
   return (
-    <div className="grid gap-4 rounded-card border border-line bg-paper p-4">
+    <div className="grid gap-4 rounded-card border border-line bg-card p-4">
       <h2 className="font-sans text-2xl font-semibold text-ink">{title}</h2>
-      <p className="text-sm leading-6 text-slate">{body}</p>
+      <p className="text-sm leading-6 text-text-muted">{body}</p>
       <Button disabled={disabled} onClick={onClick}>
         {buttonLabel}
       </Button>

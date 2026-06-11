@@ -14,7 +14,7 @@ type NavLink = {
 
 const primaryLinks: NavLink[] = [
   { href: "/how-it-works", label: "How it works" },
-  { href: "/bid-index", label: "Bid Index" },
+  { href: "/bid-index", label: "Bid index" },
   { href: "/lenders", label: "For lenders" },
 ];
 
@@ -25,10 +25,35 @@ const mobileActions: NavLink[] = [
 
 export function NavBar() {
   const pathname = usePathname();
+  const [heroVisible, setHeroVisible] = useState(pathname === "/");
   const [menuOpen, setMenuOpen] = useState(false);
+  const primaryCtaVariant =
+    pathname === "/" && heroVisible ? "secondary" : "primary";
 
   useEffect(() => {
     setMenuOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    if (pathname !== "/") {
+      setHeroVisible(false);
+      return;
+    }
+
+    const hero = document.getElementById("home-hero");
+
+    if (!hero) {
+      setHeroVisible(false);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => setHeroVisible(entry.isIntersecting),
+      { rootMargin: "-72px 0px 0px 0px", threshold: 0.2 },
+    );
+
+    observer.observe(hero);
+    return () => observer.disconnect();
   }, [pathname]);
 
   useEffect(() => {
@@ -47,7 +72,7 @@ export function NavBar() {
   }, [menuOpen]);
 
   return (
-    <header className="sticky top-0 z-50 border-b border-line bg-bone/95 backdrop-blur">
+    <header className="sticky top-0 z-50 border-b border-line bg-paper/95 backdrop-blur">
       <div className="vr-frame flex min-h-16 items-center justify-between gap-3 md:min-h-[68px] md:gap-6">
         <Link
           aria-label="VieRates home"
@@ -66,7 +91,7 @@ export function NavBar() {
 
         <nav
           aria-label="Primary"
-          className="hidden items-center gap-6 text-sm font-medium text-slate md:flex"
+          className="hidden items-center gap-6 text-sm font-medium text-text-muted md:flex"
         >
           {primaryLinks.map((link) => (
             <DesktopNavLink
@@ -78,26 +103,22 @@ export function NavBar() {
         </nav>
 
         <div className="hidden items-center md:flex">
-          <Button href="/app/new" size="sm">
+          <Button href="/app/new" size="sm" variant={primaryCtaVariant}>
             Start my listing
           </Button>
         </div>
 
         <div className="flex items-center gap-2 md:hidden">
-          <Link
-            className="inline-flex min-h-11 items-center justify-center rounded-button border border-paddle bg-paddle px-3 text-sm font-semibold leading-none text-ink-900 no-underline transition-colors duration-150 hover:border-paddle-deep hover:bg-paddle-deep"
-            href="/app/new"
-          >
-            <span className="hidden min-[390px]:inline">Start my listing</span>
-            <span className="min-[390px]:hidden">Start</span>
-          </Link>
+          <Button href="/app/new" size="sm" variant={primaryCtaVariant}>
+            Start my listing
+          </Button>
           <button
             aria-controls="mobile-navigation"
             aria-expanded={menuOpen}
             aria-label={
               menuOpen ? "Close navigation menu" : "Open navigation menu"
             }
-            className="inline-flex h-11 w-11 items-center justify-center rounded-button border border-line-strong bg-paper text-ink transition-colors duration-150 hover:border-ink"
+            className="inline-flex h-11 w-11 items-center justify-center rounded-button border border-line-strong bg-card text-ink transition-colors duration-150 hover:border-ink"
             onClick={() => setMenuOpen((open) => !open)}
             type="button"
           >
@@ -116,7 +137,7 @@ export function NavBar() {
             type="button"
           />
           <div
-            className="absolute inset-x-0 top-full z-30 border-b border-line bg-bone shadow-[0_18px_44px_rgb(7_33_27_/_14%)] md:hidden"
+            className="absolute inset-x-0 top-full z-30 border-b border-line bg-paper shadow-[0_18px_44px_rgb(7_33_27_/_14%)] md:hidden"
             id="mobile-navigation"
           >
             <div className="vr-frame max-h-[calc(100dvh-4rem)] overflow-y-auto pb-[calc(1rem+env(safe-area-inset-bottom))] pt-3">
@@ -136,12 +157,9 @@ export function NavBar() {
               </nav>
 
               <div className="mt-3 grid gap-2 border-t border-line pt-3">
-                <Link
-                  className="inline-flex min-h-[52px] items-center justify-center rounded-button border border-paddle bg-paddle px-4 text-base font-semibold leading-none text-ink-900 no-underline transition-colors duration-150 hover:border-paddle-deep hover:bg-paddle-deep"
-                  href="/app/new"
-                >
+                <Button fullWidth href="/app/new" size="lg">
                   Start my listing
-                </Link>
+                </Button>
                 <div className="grid grid-cols-2 gap-2">
                   {mobileActions.map((action) => (
                     <MobileActionLink
@@ -170,7 +188,7 @@ function DesktopNavLink({
       aria-current={active ? "page" : undefined}
       className={[
         "py-2 no-underline transition-colors duration-150 hover:text-ink",
-        active ? "text-ink" : "text-slate",
+        active ? "text-ink" : "text-text-muted",
       ].join(" ")}
       href={href}
     >
@@ -187,7 +205,7 @@ function MobileNavLink({ active, href, label }: NavLink & { active: boolean }) {
         "flex min-h-[52px] items-center justify-between rounded-card border px-4 text-base font-semibold no-underline transition-colors duration-150",
         active
           ? "border-ink bg-ink text-on-ink"
-          : "border-line bg-paper text-ink hover:border-line-strong",
+          : "border-line bg-card text-ink hover:border-line-strong",
       ].join(" ")}
       href={href}
     >
@@ -257,7 +275,7 @@ function ChevronIcon() {
   return (
     <svg
       aria-hidden="true"
-      className="h-4 w-4 shrink-0 text-slate-weak"
+      className="h-4 w-4 shrink-0 text-text-faint"
       fill="none"
       viewBox="0 0 24 24"
     >

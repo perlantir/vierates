@@ -448,7 +448,7 @@ function readOtpChallengePhone(value: string): string {
 export async function captureBorrowerFunnelEvent(
   db: PrismaClient,
   input: {
-    event: "wizard_step_viewed" | "wizard_step_completed";
+    event: "page_view" | "wizard_step_viewed" | "wizard_step_completed";
     metadata?: Prisma.InputJsonValue;
     sessionId: string;
     step: string;

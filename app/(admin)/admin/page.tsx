@@ -54,13 +54,13 @@ export default async function AdminPage() {
   return (
     <>
       <NavBar />
-      <main className="vr-section min-h-screen bg-bone">
+      <main className="vr-section min-h-screen bg-paper">
         <div className="vr-frame grid gap-6">
           <header className="border-b border-line pb-6">
             <h1 className="font-sans text-4xl font-semibold text-ink md:text-5xl">
               Admin console
             </h1>
-            <p className="mt-3 max-w-2xl text-slate">
+            <p className="mt-3 max-w-2xl text-text-muted">
               Launch controls, lender approvals, manual review, disputes, audit
               logs, and live auctions.
             </p>
@@ -80,7 +80,7 @@ export default async function AdminPage() {
               <div className="grid grid-cols-5 gap-2">
                 {stateRules.slice(0, 25).map((rule) => (
                   <span
-                    className="rounded-ui border border-line bg-paper px-2 py-1 text-center text-xs font-semibold text-slate"
+                    className="rounded-ui border border-line bg-card px-2 py-1 text-center text-xs font-semibold text-text-muted"
                     key={rule.state}
                   >
                     {rule.state}: {rule.status}
@@ -157,7 +157,7 @@ function Row({ meta, title }: { meta: string; title: string }) {
   return (
     <div className="border-b border-line pb-3 text-sm last:border-b-0">
       <p className="font-semibold text-ink">{title}</p>
-      <p className="mt-1 text-xs text-slate">{meta}</p>
+      <p className="mt-1 text-xs text-text-muted">{meta}</p>
     </div>
   );
 }

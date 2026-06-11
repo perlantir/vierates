@@ -24,10 +24,12 @@ test("home renders the live bid ledger", async ({ page }) => {
     }),
   ).toBeVisible();
   await expect(
-    page.getByRole("heading", { name: "Example bids" }),
+    page.getByRole("region", { name: "Example bids" }),
   ).toBeVisible();
   await expect(page.getByText("FICO 740+").first()).toBeVisible();
-  await expect(page.getByText("Assumes $450,000 loan amount")).toBeVisible();
+  await expect(
+    page.getByText("Illustrative bids as of June 11, 2026"),
+  ).toBeVisible();
 });
 
 test("waitlist saves an email", async ({ page }) => {
@@ -35,12 +37,14 @@ test("waitlist saves an email", async ({ page }) => {
 
   await page.goto("/waitlist");
   await page.getByLabel("Email").fill(email);
+  await page.getByLabel("State").selectOption("IL");
   await page.getByRole("button", { name: "Join waitlist" }).click();
 
   await expect(page.getByTestId("waitlist-success")).toBeVisible();
 
   const entry = await prisma.waitlistEntry.findUnique({ where: { email } });
   expect(entry?.email).toBe(email);
+  expect(entry?.source).toContain("state:IL");
 });
 
 test("lender form writes application and consent record", async ({ page }) => {

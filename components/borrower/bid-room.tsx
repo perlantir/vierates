@@ -64,25 +64,25 @@ export function BorrowerBidRoom({ auction, bids }: BorrowerBidRoomProps) {
   }
 
   return (
-    <main className="min-h-screen bg-bone px-4 py-6 md:px-8 md:py-10">
+    <main className="min-h-screen bg-paper px-4 py-6 md:px-8 md:py-10">
       <section className="mx-auto grid max-w-5xl gap-6">
         <header className="grid gap-3 border-b border-line pb-5">
-          <p className="vr-data text-sm text-slate">
+          <p className="vr-data text-sm text-text-muted">
             Auction {humanize(auction.status)} · closes{" "}
             {new Date(auction.closesAt).toLocaleString()}
           </p>
           <h1 className="font-sans text-3xl font-semibold leading-tight text-ink md:text-4xl">
             Compare your bids.
           </h1>
-          <p className="max-w-2xl text-sm leading-6 text-slate">
+          <p className="max-w-2xl text-sm leading-6 text-text-muted">
             Every offer shows APR first, then note rate, fees, points, lock
             length, and conditions.
           </p>
         </header>
 
         {bids.length === 0 ? (
-          <div className="rounded-card border border-line bg-paper p-6">
-            <p className="text-sm leading-6 text-slate">
+          <div className="rounded-card border border-line bg-card p-6">
+            <p className="text-sm leading-6 text-text-muted">
               Your Bid Room is warming up. You will see firm, comparable bids
               here as lenders respond.
             </p>
@@ -94,7 +94,7 @@ export function BorrowerBidRoom({ auction, bids }: BorrowerBidRoomProps) {
                 <button
                   aria-pressed={bid.id === selectedBidId}
                   className={[
-                    "rounded-card border bg-paper p-4 text-left transition-colors",
+                    "rounded-card border bg-card p-4 text-left transition-colors",
                     bid.id === selectedBidId
                       ? "border-ink shadow-[var(--shadow-1)]"
                       : "border-line hover:border-line-strong",
@@ -105,13 +105,13 @@ export function BorrowerBidRoom({ auction, bids }: BorrowerBidRoomProps) {
                 >
                   <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
                     <div>
-                      <p className="text-sm font-semibold text-slate">
+                      <p className="text-sm font-semibold text-text-muted">
                         Paddle #{index + 1}
                       </p>
                       <h2 className="mt-1 text-lg font-semibold text-ink">
                         {bid.lenderName}
                       </h2>
-                      <p className="mt-1 text-sm text-slate">
+                      <p className="mt-1 text-sm text-text-muted">
                         {humanize(bid.product)} · {bid.program}
                       </p>
                     </div>
@@ -138,11 +138,11 @@ export function BorrowerBidRoom({ auction, bids }: BorrowerBidRoomProps) {
               ))}
             </div>
 
-            <aside className="rounded-card border border-line bg-paper p-5">
+            <aside className="rounded-card border border-line bg-card p-5">
               <h2 className="font-sans text-2xl font-semibold text-ink">
                 Pick and reveal
               </h2>
-              <p className="mt-3 text-sm leading-6 text-slate">
+              <p className="mt-3 text-sm leading-6 text-text-muted">
                 {selectedBid
                   ? `Your identity goes to ${selectedBid.lenderName} only. The other lenders never learn who you were.`
                   : "Select a bid to review the reveal consent."}
@@ -159,12 +159,12 @@ export function BorrowerBidRoom({ auction, bids }: BorrowerBidRoomProps) {
                 </Button>
               </div>
               {!canPick ? (
-                <p className="mt-3 text-xs leading-5 text-slate">
+                <p className="mt-3 text-xs leading-5 text-text-muted">
                   Picking opens after the auction closes.
                 </p>
               ) : null}
               {message ? (
-                <p className="mt-4 rounded-ui border border-line bg-bone p-3 text-sm leading-6 text-slate">
+                <p className="mt-4 rounded-ui border border-line bg-paper p-3 text-sm leading-6 text-text-muted">
                   {message}
                 </p>
               ) : null}
@@ -179,14 +179,14 @@ export function BorrowerBidRoom({ auction, bids }: BorrowerBidRoomProps) {
 function Metric({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <dt className="text-xs font-semibold text-slate">{label}</dt>
+      <dt className="text-xs font-semibold text-text-muted">{label}</dt>
       <dd className="vr-data mt-1 text-sm font-semibold text-ink">{value}</dd>
     </div>
   );
 }
 
 function formatBp(value: number): string {
-  return `${(value / 100).toFixed(3)}%`;
+  return `${(value / 100).toFixed(2)}%`;
 }
 
 function formatDisplayDate(value: string): string {

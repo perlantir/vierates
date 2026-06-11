@@ -18,7 +18,7 @@ export function TrustBar({
     <div
       className={[
         "flex flex-wrap items-center gap-x-7 gap-y-3 border-y py-4 text-xs font-semibold tracking-[0.06em]",
-        dark ? "border-ink-line text-on-ink" : "border-line text-ink-90",
+        dark ? "border-ink-line text-on-ink" : "border-line text-text",
       ].join(" ")}
       role="list"
     >
@@ -40,7 +40,7 @@ function CheckIcon() {
   return (
     <svg
       aria-hidden="true"
-      className="h-4 w-4 flex-none text-funded"
+      className="h-4 w-4 flex-none text-verified"
       fill="none"
       viewBox="0 0 24 24"
     >

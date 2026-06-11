@@ -75,7 +75,7 @@ export function LiveBidLedger({
         "overflow-hidden rounded-card border shadow-[var(--shadow-2)]",
         dark
           ? "border-ink-line bg-ink text-on-ink"
-          : "border-line bg-paper text-ink",
+          : "border-line bg-card text-ink",
       ].join(" ")}
     >
       <div
@@ -85,14 +85,14 @@ export function LiveBidLedger({
         ].join(" ")}
       >
         <div className="flex items-center gap-2">
-          <span className="h-2 w-2 rounded-full bg-funded shadow-[0_0_0_3px_var(--verified-tint)]" />
-          <h2 className="text-sm font-semibold">{title}</h2>
+          <span className="h-2 w-2 rounded-full bg-verified shadow-[0_0_0_3px_var(--verified-tint)]" />
+          <div className="text-sm font-semibold">{title}</div>
         </div>
         {windowLabel ? (
           <p
             className={[
               "vr-data text-xs",
-              dark ? "text-on-ink-dim" : "text-slate",
+              dark ? "text-on-ink-dim" : "text-text-muted",
             ].join(" ")}
           >
             {windowLabel}
@@ -101,9 +101,10 @@ export function LiveBidLedger({
       </div>
 
       <div
+        aria-live={live ? "polite" : "off"}
         className={[
           "grid grid-cols-[0.68fr_1fr_1fr_auto] gap-3 px-4 py-2 text-xs font-semibold tracking-[0.06em]",
-          dark ? "text-on-ink-dim" : "text-slate",
+          dark ? "text-on-ink-dim" : "text-text-muted",
         ].join(" ")}
       >
         <span>Time</span>
@@ -120,7 +121,7 @@ export function LiveBidLedger({
             <div
               className={[
                 "grid grid-cols-[0.68fr_1fr_1fr_auto] items-center gap-3 border-t px-4 py-2.5 sm:py-3",
-                index > 2 ? "hidden sm:grid" : "",
+                index > 3 ? "hidden sm:grid" : "",
                 row.id === enterId ? "vr-ledger-enter" : "",
                 dark ? "border-ink-line" : "border-line",
                 isBest && !dark ? "bg-[var(--paddle-tint)]" : "",
@@ -131,7 +132,7 @@ export function LiveBidLedger({
               <span
                 className={[
                   "vr-data text-xs",
-                  dark ? "text-on-ink-dim" : "text-slate",
+                  dark ? "text-on-ink-dim" : "text-text-muted",
                 ].join(" ")}
               >
                 {rowTime}
@@ -143,7 +144,7 @@ export function LiveBidLedger({
                     ? "font-semibold"
                     : dark
                       ? "text-on-ink-dim"
-                      : "text-slate",
+                      : "text-text-muted",
                 ].join(" ")}
               >
                 {row.profile ?? "FICO 720–759"}
@@ -151,7 +152,7 @@ export function LiveBidLedger({
               <span
                 className={[
                   "truncate text-sm",
-                  dark ? "text-on-ink-dim" : "text-slate",
+                  dark ? "text-on-ink-dim" : "text-text-muted",
                 ].join(" ")}
               >
                 {row.product ?? row.lender}
@@ -165,7 +166,7 @@ export function LiveBidLedger({
                 {row.apr}%
               </span>
               {isBest && row.savings ? (
-                <span className="col-span-4 text-right text-xs font-semibold text-funded">
+                <span className="col-span-4 text-right text-xs font-semibold text-verified">
                   {row.savings}
                 </span>
               ) : null}
@@ -177,11 +178,14 @@ export function LiveBidLedger({
       <p
         className={[
           "hidden border-t px-4 py-3 text-xs leading-5 sm:block",
-          dark ? "border-ink-line text-on-ink-dim" : "border-line text-slate",
+          dark
+            ? "border-ink-line text-on-ink-dim"
+            : "border-line text-text-muted",
         ].join(" ")}
       >
-        Example bids. Lenders see only masked bands before you choose. Assumes
-        $450,000 loan amount, 75% LTV, FICO 740+, 45-day lock.
+        Illustrative bids as of June 11, 2026. Lenders see only masked bands
+        before you choose. Assumes $450,000 loan amount, 75% LTV, FICO 740+,
+        45-day lock.
       </p>
     </section>
   );

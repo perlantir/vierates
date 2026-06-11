@@ -245,7 +245,7 @@ export function LenderOnboardingWizard() {
             Send for admin approval
           </Button>
           {message ? (
-            <p className="rounded-ui border border-line bg-bone p-3 text-sm text-slate">
+            <p className="rounded-ui border border-line bg-paper p-3 text-sm text-text-muted">
               {message}
             </p>
           ) : null}
@@ -294,7 +294,7 @@ function TextInput({
     <label className="grid gap-2 text-sm font-semibold text-ink">
       {label}
       <input
-        className="min-h-14 rounded-ui border border-line bg-paper px-3 text-base font-normal"
+        className="min-h-14 rounded-ui border border-line bg-card px-3 text-base font-normal"
         onChange={(event) => onChange(event.target.value)}
         value={value ?? ""}
       />

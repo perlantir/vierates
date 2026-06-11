@@ -23,7 +23,7 @@ export function BidCard({
     <article className="vr-card grid gap-4 p-5">
       <div className="flex items-center justify-between gap-4 border-b border-line pb-3">
         <h3 className="font-semibold text-ink">{lenderName}</h3>
-        <p className="vr-data text-sm text-slate">{lockDays} day lock</p>
+        <p className="vr-data text-sm text-text-muted">{lockDays} day lock</p>
       </div>
       <RateDisplay
         apr={apr}
@@ -31,7 +31,9 @@ export function BidCard({
         assumptions={assumptions}
         rate={rate}
       />
-      <p className="vr-data text-right text-sm text-slate">{points} points</p>
+      <p className="vr-data text-right text-sm text-text-muted">
+        {points} points
+      </p>
     </article>
   );
 }

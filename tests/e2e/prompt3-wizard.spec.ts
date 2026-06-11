@@ -17,8 +17,7 @@ test.afterAll(async () => {
 test("borrower completes the listing wizard and writes SMS consent", async ({
   page,
 }) => {
-  const suffix = String(1000 + (Date.now() % 8000)).padStart(4, "0");
-  const phone = `312777${suffix}`;
+  const phone = e2ePhone();
   await page.context().setExtraHTTPHeaders({
     "x-forwarded-for": `198.51.100.${1 + (Date.now() % 200)}`,
   });
@@ -93,4 +92,8 @@ async function demoCodeFromPage(page: Page) {
   expect(code).toBeTruthy();
 
   return code ?? "";
+}
+
+function e2ePhone() {
+  return `312${String(Math.floor(1_000_000 + Math.random() * 9_000_000))}`;
 }

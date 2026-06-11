@@ -10,9 +10,9 @@ export function LegalTemplate({
   updated,
 }: LegalTemplateProps) {
   return (
-    <main className="vr-section bg-bone">
+    <main className="vr-section bg-paper">
       <div className="vr-frame vr-legal">
-        <p className="vr-data text-sm text-slate">{updated}</p>
+        <p className="vr-data text-sm text-text-muted">{updated}</p>
         <h1 className="mt-3 text-5xl font-semibold text-ink">{title}</h1>
         <div className="mt-8 grid gap-7">
           {sections.map(([heading, body]) => (

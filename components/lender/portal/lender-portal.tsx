@@ -68,13 +68,13 @@ export function LenderPortal({
 
   if (!org || org.status !== "APPROVED") {
     return (
-      <main className="vr-section min-h-screen bg-bone">
+      <main className="vr-section min-h-screen bg-paper">
         <div className="vr-frame">
           <section className="vr-card p-6">
             <h1 className="font-sans text-4xl font-semibold text-ink">
               Lender portal pending
             </h1>
-            <p className="mt-3 text-slate">
+            <p className="mt-3 text-text-muted">
               Admin approval is required before board access opens.
             </p>
             <div className="mt-5">
@@ -138,7 +138,7 @@ export function LenderPortal({
   }
 
   return (
-    <main className="min-h-screen bg-bone">
+    <main className="min-h-screen bg-paper">
       <div className="grid min-h-screen lg:grid-cols-[220px_1fr]">
         <aside className="bg-ink px-4 py-5 text-on-ink lg:min-h-screen">
           <Link
@@ -170,7 +170,7 @@ export function LenderPortal({
                 className={[
                   "rounded-button px-3 py-2 no-underline",
                   index === 0
-                    ? "bg-paper text-ink"
+                    ? "bg-card text-ink"
                     : "text-on-ink-dim hover:bg-on-ink/10 hover:text-on-ink",
                 ].join(" ")}
                 href={`#${item.toLowerCase().replaceAll(" ", "-")}`}
@@ -197,27 +197,27 @@ export function LenderPortal({
               <h1 className="font-sans text-3xl font-semibold text-ink md:text-4xl">
                 Lender board
               </h1>
-              <p className="mt-3 max-w-2xl text-slate">
+              <p className="mt-3 max-w-2xl text-text-muted">
                 Masked verified auctions in your approved coverage box.
               </p>
             </div>
-            <div className="rounded-card border border-line bg-paper p-4">
-              <p className="text-xs font-semibold text-slate">Best APR</p>
+            <div className="rounded-card border border-line bg-card p-4">
+              <p className="text-xs font-semibold text-text-muted">Best APR</p>
               <p className="vr-data mt-1 text-2xl font-semibold text-ink">
                 {bestAprLabel(auctions)}
               </p>
-              <p className="text-xs text-slate">held by Paddle #3</p>
+              <p className="text-xs text-text-muted">held by Paddle #3</p>
             </div>
           </header>
 
           <section className="grid gap-4 xl:grid-cols-[1.2fr_0.8fr]">
             <div className="grid gap-3">
               {auctions.length === 0 ? (
-                <article className="rounded-card border border-line bg-paper p-5">
+                <article className="rounded-card border border-line bg-card p-5">
                   <h2 className="font-sans text-lg font-semibold text-ink">
                     No matched auctions yet.
                   </h2>
-                  <p className="mt-2 text-sm leading-6 text-slate">
+                  <p className="mt-2 text-sm leading-6 text-text-muted">
                     Expand your Coverage Box to see more masked verified
                     borrowers as they enter the board.
                   </p>
@@ -226,7 +226,7 @@ export function LenderPortal({
               {auctions.map((auction) => (
                 <article
                   className={[
-                    "rounded-card border bg-paper p-4",
+                    "rounded-card border bg-card p-4",
                     selectedAuctionId === auction.auction?.id
                       ? "border-ink shadow-[var(--shadow-1)]"
                       : "border-line",
@@ -238,7 +238,7 @@ export function LenderPortal({
                       <h2 className="font-sans text-lg font-semibold text-ink">
                         {auction.county ?? "County hidden"}, {auction.state}
                       </h2>
-                      <p className="mt-1 text-sm text-slate">
+                      <p className="mt-1 text-sm text-text-muted">
                         {humanize(auction.purpose)} ·{" "}
                         {humanize(auction.propertyType)} ·{" "}
                         {humanize(auction.occupancy)}
@@ -270,11 +270,11 @@ export function LenderPortal({
             </div>
 
             <aside className="grid gap-4 content-start">
-              <section className="rounded-card border border-line bg-paper p-5 shadow-[var(--shadow-1)]">
+              <section className="rounded-card border border-line bg-card p-5 shadow-[var(--shadow-1)]">
                 <h2 className="font-sans text-2xl font-semibold text-ink">
                   Bid composer
                 </h2>
-                <p className="mt-2 text-sm leading-6 text-slate">
+                <p className="mt-2 text-sm leading-6 text-text-muted">
                   Best APR is anonymized on the board. Borrowers compare your
                   APR, fees, lock, and conditions before choosing.
                 </p>
@@ -287,14 +287,14 @@ export function LenderPortal({
                   </Button>
                 </div>
                 {message ? (
-                  <p className="mt-4 rounded-ui border border-line bg-bone p-3 text-sm text-slate">
+                  <p className="mt-4 rounded-ui border border-line bg-paper p-3 text-sm text-text-muted">
                     {message}
                   </p>
                 ) : null}
               </section>
 
               <section
-                className="rounded-card border border-line bg-paper p-5"
+                className="rounded-card border border-line bg-card p-5"
                 id="my-bids"
               >
                 <h2 className="font-sans text-2xl font-semibold text-ink">
@@ -341,7 +341,7 @@ function bidAttemptForAuction(
 function Metric({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <dt className="text-xs font-semibold text-slate">{label}</dt>
+      <dt className="text-xs font-semibold text-text-muted">{label}</dt>
       <dd className="vr-data mt-1 text-sm font-semibold text-ink">{value}</dd>
     </div>
   );
@@ -356,7 +356,7 @@ function currency(value: number): string {
 }
 
 function formatBp(value: number): string {
-  return `${(value / 100).toFixed(3)}%`;
+  return `${(value / 100).toFixed(2)}%`;
 }
 
 function humanize(value: string): string {

@@ -204,7 +204,7 @@ function Field({
       <span className="text-sm font-semibold text-ink">{label}</span>
       <input
         className={[
-          "mt-2 min-h-14 w-full rounded-ui border border-line bg-paper px-4 text-base text-ink placeholder:text-slate",
+          "mt-2 min-h-14 w-full rounded-ui border border-line bg-card px-4 text-base text-ink placeholder:text-text-muted",
           data ? "vr-data" : "",
         ].join(" ")}
         onChange={(event) => onChange(event.target.value)}

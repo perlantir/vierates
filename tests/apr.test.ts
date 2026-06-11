@@ -56,6 +56,6 @@ describe("APR engine", () => {
   });
 
   it("formats APR for compliant display", () => {
-    expect(formatApr(609)).toBe("6.090%");
+    expect(formatApr(609)).toBe("6.09%");
   });
 });

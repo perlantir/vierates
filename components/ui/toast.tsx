@@ -4,9 +4,9 @@ type ToastProps = {
 };
 
 const toneClasses: Record<NonNullable<ToastProps["tone"]>, string> = {
-  success: "border-funded/30 bg-[var(--funded-tint)] text-ink",
-  danger: "border-signal/30 bg-[var(--signal-tint)] text-ink",
-  neutral: "border-line bg-paper text-ink",
+  success: "border-verified/30 bg-[var(--verified-tint)] text-ink",
+  danger: "border-alert/30 bg-[var(--alert-tint)] text-ink",
+  neutral: "border-line bg-card text-ink",
 };
 
 export function Toast({ children, tone = "neutral" }: ToastProps) {

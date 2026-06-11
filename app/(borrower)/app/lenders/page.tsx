@@ -3,6 +3,7 @@ import { FooterDisclosures } from "@/components/footer-disclosures";
 import { NavBar } from "@/components/nav-bar";
 import { getConnectDirectoryData } from "@/lib/borrower/connect";
 import { getCurrentBorrowerUserId } from "@/lib/borrower/current";
+import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
@@ -10,7 +11,17 @@ export default async function BorrowerLendersPage() {
   const borrowerUserId = await getCurrentBorrowerUserId();
   const directory = borrowerUserId
     ? await getConnectDirectoryData(borrowerUserId)
-    : { lenders: [], listing: null };
+    : {
+        lenders: await prisma.lenderOrg.findMany({
+          include: {
+            coverageBox: true,
+            ratings: { select: { stars: true } },
+          },
+          orderBy: { legalName: "asc" },
+          where: { status: "APPROVED" },
+        }),
+        listing: null,
+      };
 
   const listing = directory.listing
     ? {
@@ -37,7 +48,7 @@ export default async function BorrowerLendersPage() {
         : null;
 
     return {
-      avgResponseTime: "[STAT]",
+      avgResponseTime: "New",
       id: lender.id,
       legalName: lender.legalName,
       nmlsId: lender.nmlsId,

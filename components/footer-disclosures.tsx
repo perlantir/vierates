@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 export const FOOTER_DISCLOSURE =
-  "VieRates is a marketplace, not a lender, mortgage broker, or loan originator. VieRates does not make loans, take loan applications, or make credit decisions. All credit decisions are made by participating lenders. NMLS Consumer Access: nmlsconsumeraccess.org.";
+  "VieRates is a marketplace, not a lender, mortgage broker, or loan originator. VieRates does not make loans, take loan applications, or make credit decisions. All credit decisions are made by participating lenders.";
 
 export function FooterDisclosures() {
   return (
@@ -34,8 +34,9 @@ export function FooterDisclosures() {
             links={[
               ["How it works", "/how-it-works"],
               ["Bid index", "/bid-index"],
-              ["FAQ", "/"],
+              ["FAQ", "/#faq"],
               ["Start my listing", "/app/new"],
+              ["Waitlist", "/waitlist"],
             ]}
             title="Borrowers"
           />
@@ -81,7 +82,7 @@ export function FooterDisclosures() {
           NMLS Consumer Access
         </Link>
         <p className="vr-data mt-4 text-xs text-on-ink-dim">
-          © 2026 VieRates, Inc. · NMLS #[STAT]
+          © 2026 VieRates, Inc.
         </p>
       </div>
     </footer>

@@ -360,7 +360,7 @@ export function ListingWizard({
         <h1 className="font-sans text-3xl font-semibold text-ink">
           VieRates isn&apos;t live in {gatedState} yet.
         </h1>
-        <p className="mt-3 text-slate">
+        <p className="mt-3 text-text-muted">
           Leave your email and we will tell you when anonymous listings open
           there.
         </p>
@@ -398,7 +398,7 @@ export function ListingWizard({
             Street address
             <input
               autoComplete="street-address"
-              className="min-h-14 rounded-ui border border-line bg-paper px-3 text-base font-normal"
+              className="min-h-14 rounded-ui border border-line bg-card px-3 text-base font-normal"
               onChange={(event) =>
                 setData((current) => ({
                   ...current,
@@ -409,14 +409,14 @@ export function ListingWizard({
               value={data.address ?? ""}
             />
           </label>
-          <p className="text-sm leading-6 text-slate">
+          <p className="text-sm leading-6 text-text-muted">
             Checked against public records, then sealed. Lenders never see your
             street address.
           </p>
           <label className="grid gap-2 text-sm font-semibold text-ink">
             State
             <select
-              className="min-h-14 rounded-ui border border-line bg-paper px-3 text-base font-normal"
+              className="min-h-14 rounded-ui border border-line bg-card px-3 text-base font-normal"
               onChange={(event) =>
                 setData((current) => ({
                   ...current,
@@ -470,7 +470,7 @@ export function ListingWizard({
 
       {step === 5 ? (
         <div className="grid gap-5">
-          <p className="text-sm text-slate">
+          <p className="text-sm text-text-muted">
             We estimate{" "}
             <span className="vr-data font-semibold text-ink">
               ${(data.estValueAmount ?? 412_000).toLocaleString()}
@@ -509,7 +509,7 @@ export function ListingWizard({
             step={10_000}
             value={data.balanceAmount ?? 320_000}
           />
-          <p className="text-sm text-slate">
+          <p className="text-sm text-text-muted">
             ≈ <span className="vr-data font-semibold text-ink">{ltv}%</span> of
             your home&apos;s value
           </p>
@@ -540,7 +540,7 @@ export function ListingWizard({
             options={creditOptions}
             selected={data.creditBandStated}
           />
-          <p className="text-sm text-slate">
+          <p className="text-sm text-text-muted">
             Just your best guess — no credit check here.
           </p>
         </div>
@@ -566,14 +566,14 @@ export function ListingWizard({
 
       {step === 11 ? (
         <div className="grid gap-4">
-          <p className="text-sm text-slate">
+          <p className="text-sm text-text-muted">
             We&apos;ll text one code. We never sell your number.
           </p>
           <label className="grid gap-2 text-sm font-semibold text-ink">
             Mobile phone
             <input
               autoComplete="tel"
-              className="min-h-14 rounded-ui border border-line bg-paper px-3 text-base font-normal"
+              className="min-h-14 rounded-ui border border-line bg-card px-3 text-base font-normal"
               onChange={(event) =>
                 setData((current) => ({
                   ...current,
@@ -583,7 +583,7 @@ export function ListingWizard({
               value={data.phone ?? ""}
             />
           </label>
-          <label className="flex items-start gap-3 rounded-ui border border-line bg-paper p-3 text-xs leading-5 text-slate">
+          <label className="flex items-start gap-3 rounded-ui border border-line bg-card p-3 text-xs leading-5 text-text-muted">
             <input
               checked={smsConsentAccepted}
               className="mt-1 h-4 w-4 accent-ink"
@@ -603,7 +603,7 @@ export function ListingWizard({
             <label className="grid flex-1 gap-2 text-sm font-semibold text-ink">
               Verification code
               <input
-                className="min-h-14 rounded-ui border border-line bg-paper px-3 text-center font-mono text-2xl font-medium tracking-[0.45em]"
+                className="min-h-14 rounded-ui border border-line bg-card px-3 text-center font-mono text-2xl font-medium tracking-[0.45em]"
                 inputMode="numeric"
                 maxLength={6}
                 onChange={(event) =>
@@ -694,7 +694,7 @@ function DoneScreen({
       ) : null}
       <TwoDoors />
       {resumeUrl ? (
-        <p className="text-xs text-slate">
+        <p className="text-xs text-text-muted">
           Resume link kept for your records:{" "}
           <span className="vr-data">{resumeUrl}</span>
         </p>
@@ -705,7 +705,7 @@ function DoneScreen({
 
 function StatusMessage({ children }: { children: React.ReactNode }) {
   return (
-    <p className="rounded-ui border border-line bg-bone p-3 text-sm leading-6 text-slate">
+    <p className="rounded-ui border border-line bg-paper p-3 text-sm leading-6 text-text-muted">
       {children}
     </p>
   );

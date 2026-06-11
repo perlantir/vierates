@@ -23,9 +23,9 @@ export function BidIndexTable({ rows }: { rows: BidIndexRow[] }) {
   );
 
   return (
-    <div className="overflow-x-auto rounded-ui border border-line bg-paper">
+    <div className="overflow-x-auto rounded-ui border border-line bg-card">
       <table className="w-full min-w-[620px] border-collapse text-left text-sm">
-        <thead className="bg-bone text-xs uppercase text-slate">
+        <thead className="bg-paper text-xs uppercase text-text-muted">
           <tr>
             {[
               ["creditBand", "Credit band"],
@@ -56,7 +56,7 @@ export function BidIndexTable({ rows }: { rows: BidIndexRow[] }) {
               <td className="vr-data p-3 text-right">{row.medianApr}</td>
               <td className="vr-data p-3 text-right">{row.bidCount}</td>
               <td className="vr-data p-3 text-right">{row.spread}</td>
-              <td className="p-3 text-slate">{row.updated}</td>
+              <td className="p-3 text-text-muted">{row.updated}</td>
             </tr>
           ))}
         </tbody>

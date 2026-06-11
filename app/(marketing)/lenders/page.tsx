@@ -3,6 +3,14 @@ import { FoundingLenderWizard } from "@/components/founding-lender-wizard";
 import { SectionHead } from "@/components/section-head";
 import { Button } from "@/components/ui/button";
 import { lenderFaqItems } from "@/lib/marketing/data";
+import { pageMetadata } from "@/lib/page-metadata";
+
+export const metadata = pageMetadata({
+  description:
+    "Apply for VieRates founding lender access and see how flat-fee mortgage auctions work.",
+  path: "/lenders",
+  title: "For lenders",
+});
 
 export default function LendersPage() {
   return (
@@ -56,20 +64,20 @@ export default function LendersPage() {
               ],
             ].map(([number, title, body]) => (
               <article className="border-t-2 border-ink pt-5" key={title}>
-                <p className="vr-data text-sm font-semibold text-slate">
+                <p className="vr-data text-sm font-semibold text-text-muted">
                   {number}
                 </p>
                 <h2 className="mt-3 font-display text-2xl font-semibold text-ink">
                   {title}
                 </h2>
-                <p className="mt-3 leading-7 text-ink-90">{body}</p>
+                <p className="mt-3 leading-7 text-text">{body}</p>
               </article>
             ))}
           </div>
         </div>
       </section>
 
-      <section className="vr-section bg-bone" id="founding-lender">
+      <section className="vr-section bg-paper" id="founding-lender">
         <div className="vr-frame grid gap-10 lg:grid-cols-[0.78fr_1.22fr] lg:items-start">
           <div>
             <SectionHead
@@ -99,9 +107,9 @@ function CostComparison() {
         Example marketplace spend
       </p>
       {[
-        ["Shared internet leads", "[STAT]", "68%"],
-        ["VieRates auction", "[STAT]", "28%"],
-        ["VieRates connection", "[STAT]", "16%"],
+        ["Shared internet leads", "$1,500-$4,000+", "68%"],
+        ["VieRates auction", "$150-$300", "28%"],
+        ["VieRates connection", "$600", "16%"],
       ].map(([label, value, width]) => (
         <div className="mb-5" key={label}>
           <div className="mb-2 flex items-center justify-between gap-4">
@@ -110,7 +118,7 @@ function CostComparison() {
               className={[
                 "vr-data text-base font-semibold",
                 label.startsWith("VieRates")
-                  ? "text-funded"
+                  ? "text-verified"
                   : "text-on-ink-dim",
               ].join(" ")}
             >
@@ -121,7 +129,7 @@ function CostComparison() {
             <div
               className={[
                 "h-full rounded-full",
-                label.startsWith("VieRates") ? "bg-funded" : "bg-slate",
+                label.startsWith("VieRates") ? "bg-verified" : "bg-text-muted",
               ].join(" ")}
               style={{ width }}
             />
@@ -129,8 +137,9 @@ function CostComparison() {
         </div>
       ))}
       <p className="text-xs leading-5 text-on-ink-dim">
-        Here&apos;s the math: replace [STAT] values with approved cost
-        assumptions before paid acquisition.
+        Assumes purchased leads at $75-$200 each, 20:1 to 30:1 lead-to-verified
+        efficiency, and flat VieRates marketplace pricing that is never tied to
+        whether a loan funds.
       </p>
     </div>
   );

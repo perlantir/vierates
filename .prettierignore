@@ -8,3 +8,4 @@ playwright-report/
 test-results/
 artifacts/
 prisma/migrations/
+public/apple-touch-icon.svg

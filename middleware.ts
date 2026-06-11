@@ -1,26 +1,16 @@
-import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
+import { clerkMiddleware } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 
 import { e2eRuntimeAllowed } from "@/lib/runtime-mode";
-
-const isProtectedRoute = createRouteMatcher([
-  "/app(.*)",
-  "/lender(.*)",
-  "/admin(.*)",
-]);
-const isPublicListingRoute = createRouteMatcher(["/app/new(.*)"]);
 
 function e2eMiddleware() {
   return applySecurityHeaders(NextResponse.next());
 }
 
 function publicOnlyMiddleware(request: NextRequest) {
-  if (isProtectedRoute(request) && !isPublicListingRoute(request)) {
+  if (isProtectedRoute(request) && !isPublicRoute(request)) {
     return applySecurityHeaders(
-      NextResponse.json(
-        { error: "Authentication is not configured." },
-        { status: 503 },
-      ),
+      NextResponse.redirect(new URL("/", request.url), 307),
     );
   }
 
@@ -33,7 +23,7 @@ const middleware = e2eRuntimeAllowed()
     ? clerkMiddleware(async (auth, request) => {
         const response = NextResponse.next();
 
-        if (isProtectedRoute(request) && !isPublicListingRoute(request)) {
+        if (isProtectedRoute(request) && !isPublicRoute(request)) {
           await auth.protect();
         }
 
@@ -52,10 +42,10 @@ function applySecurityHeaders(response: NextResponse): NextResponse {
     "Content-Security-Policy",
     [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.sentry-cdn.com https://us-assets.i.posthog.com",
+      scriptSrc(),
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob:",
-      "connect-src 'self' https://api.segment.io https://us.i.posthog.com https://*.clerk.accounts.dev",
+      "connect-src 'self' https://us.i.posthog.com https://*.clerk.accounts.dev https://*.ingest.sentry.io https://*.sentry.io",
       "frame-src 'self' https://*.array.io https://*.truv.com https://withpersona.com",
       "base-uri 'self'",
       "form-action 'self'",
@@ -77,9 +67,42 @@ function applySecurityHeaders(response: NextResponse): NextResponse {
   return response;
 }
 
+function scriptSrc(): string {
+  return [
+    "script-src 'self' 'unsafe-inline'",
+    process.env.NODE_ENV === "production" ? undefined : "'unsafe-eval'",
+    "https://js.sentry-cdn.com",
+  ]
+    .filter(Boolean)
+    .join(" ");
+}
+
 function clerkEnvConfigured(): boolean {
   return Boolean(
     process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY &&
     process.env.CLERK_SECRET_KEY,
   );
+}
+
+function isProtectedRoute(request: NextRequest): boolean {
+  const { pathname } = request.nextUrl;
+
+  return (
+    isRouteSegment(pathname, "/app") ||
+    isRouteSegment(pathname, "/lender") ||
+    isRouteSegment(pathname, "/admin")
+  );
+}
+
+function isPublicRoute(request: NextRequest): boolean {
+  const { pathname } = request.nextUrl;
+
+  return (
+    isRouteSegment(pathname, "/app/new") ||
+    isRouteSegment(pathname, "/app/lenders")
+  );
+}
+
+function isRouteSegment(pathname: string, segment: string): boolean {
+  return pathname === segment || pathname.startsWith(`${segment}/`);
 }

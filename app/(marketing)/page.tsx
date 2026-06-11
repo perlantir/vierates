@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { FaqAccordion } from "@/components/faq-accordion";
+import { JsonLd } from "@/components/json-ld";
 import { LiveBidLedger } from "@/components/live-bid-ledger";
 import { SectionHead } from "@/components/section-head";
 import { TierExplainer } from "@/components/tier-explainer";
@@ -12,19 +13,25 @@ import {
   homeFaqItems,
 } from "@/lib/marketing/data";
 
+export const metadata = {
+  alternates: {
+    canonical: "/",
+  },
+};
+
 export default function HomePage() {
   return (
     <main>
-      <section className="vr-ruled border-b border-line">
+      <section className="vr-ruled border-b border-line" id="home-hero">
         <div className="vr-frame grid gap-10 py-12 md:grid-cols-[1.02fr_0.98fr] md:items-center md:py-16 lg:py-20">
           <div className="flex flex-col justify-center">
             <h1 className="max-w-3xl font-display text-4xl font-semibold leading-[1.12] text-ink md:text-[52px] md:leading-[58px]">
               Lenders compete. You stay anonymous. You choose.
             </h1>
-            <p className="mt-6 max-w-2xl text-lg leading-8 text-ink-90">
-              List your loan in 60 seconds — free, no spam calls, no credit hit.
-              Verified borrowers get firm bids from licensed lenders in a
-              48-hour auction.
+            <p className="mt-6 max-w-2xl text-lg leading-8 text-text">
+              List your loan in 60 seconds — free, no spam calls, no score
+              impact. Verified borrowers get firm bids from licensed lenders in
+              a 48-hour auction.
             </p>
             <div className="mt-8 flex flex-wrap items-center gap-5">
               <Button href="/app/new" size="lg">
@@ -43,10 +50,10 @@ export default function HomePage() {
               bids={exampleBids}
               feed={exampleBidFeed}
               interval={2600}
-              live
+              maxRows={6}
               surface="dark"
               title="Example bids"
-              windowLabel="41:12:08 left"
+              windowLabel="48-hour window"
             />
           </div>
         </div>
@@ -58,7 +65,13 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="vr-section bg-bone">
+      <section className="border-b border-line bg-paper">
+        <div className="vr-frame py-6">
+          <MarketContextBand />
+        </div>
+      </section>
+
+      <section className="vr-section bg-paper">
         <div className="vr-frame">
           <SectionHead
             eyebrow="How it works"
@@ -82,15 +95,16 @@ export default function HomePage() {
                 "Pick your winner",
                 "Compare bids side by side. The lender you choose receives your identity at the Reveal.",
               ],
-            ].map(([number, title, body]) => (
+            ].map(([number, title, body], index) => (
               <article className="border-t-2 border-ink pt-5" key={title}>
-                <p className="vr-data text-sm font-semibold text-slate">
+                <p className="vr-data text-sm font-semibold text-text-muted">
                   {number}
                 </p>
                 <h3 className="mt-3 font-display text-2xl font-semibold text-ink">
                   {title}
                 </h3>
-                <p className="mt-3 leading-7 text-ink-90">{body}</p>
+                <p className="mt-3 leading-7 text-text">{body}</p>
+                <ProductMiniature step={index} />
               </article>
             ))}
           </div>
@@ -102,19 +116,19 @@ export default function HomePage() {
           <SectionHead
             eyebrow="Two ways in"
             sub="Connect lets you talk to one lender. The Bid Room lets verified lenders compete with firm bids."
-            title="Connect, or open the Bid Room."
+            title="Connect — or open the Bid Room."
           />
           <TierExplainer />
         </div>
       </section>
 
-      <section className="vr-section bg-bone">
+      <section className="vr-section bg-paper">
         <div className="vr-frame">
           <SectionHead
             eyebrow="The old way vs VieRates"
             title="The borrower holds the gavel."
           />
-          <div className="overflow-hidden rounded-ui border border-line bg-paper">
+          <div className="overflow-hidden rounded-ui border border-line bg-card">
             <div className="grid md:grid-cols-2">
               <ComparisonColumn
                 items={[
@@ -144,7 +158,7 @@ export default function HomePage() {
           <div>
             <SectionHead
               eyebrow="Bid index"
-              sub="A weekly market report built from platform demo data in development. Production charts use real aggregate bids only."
+              sub="Illustrative market bands now. The live index launches with aggregate auction data after the first VieRates bid rooms close."
               title="See where bids are moving."
             />
             <Button href="/bid-index" variant="secondary">
@@ -155,10 +169,28 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="vr-section bg-bone">
+      <section className="vr-section bg-paper">
         <div className="vr-frame">
           <SectionHead eyebrow="Questions" title="Straight answers." />
+          <div id="faq" className="scroll-mt-24" />
           <FaqAccordion items={homeFaqItems} />
+        </div>
+      </section>
+
+      <section className="border-t border-line bg-paper py-12">
+        <div className="vr-frame grid gap-6 md:grid-cols-[0.8fr_1.2fr] md:items-center">
+          <div>
+            <h2 className="font-display text-3xl font-semibold text-ink">
+              Not ready to list?
+            </h2>
+            <p className="mt-3 leading-7 text-text">
+              Watch your state instead. We will send one email when anonymous
+              mortgage bidding opens in your market.
+            </p>
+          </div>
+          <div className="vr-card p-5">
+            <WaitlistInlineLink />
+          </div>
         </div>
       </section>
 
@@ -177,7 +209,112 @@ export default function HomePage() {
           </Button>
         </div>
       </section>
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          mainEntity: homeFaqItems.map((item) => ({
+            "@type": "Question",
+            acceptedAnswer: {
+              "@type": "Answer",
+              text: item.answer,
+            },
+            name: item.question,
+          })),
+        }}
+      />
     </main>
+  );
+}
+
+function MarketContextBand() {
+  return (
+    <div className="grid gap-4 rounded-card border border-line bg-card p-5 md:grid-cols-[1fr_auto] md:items-center">
+      <div>
+        <p className="vr-eyebrow text-text-muted">Market context</p>
+        <p className="mt-2 text-lg font-semibold leading-7 text-ink">
+          Verified borrowers like you will see weekly bid ranges here as soon as
+          the first auctions close.
+        </p>
+      </div>
+      <div className="vr-data rounded-ui border border-line bg-paper px-4 py-3 text-right text-ink">
+        <p className="text-2xl font-semibold">6.08%-6.49%</p>
+        <p className="mt-1 text-xs text-text-muted">
+          Illustrative range · as of June 11, 2026
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function ProductMiniature({ step }: { step: number }) {
+  if (step === 0) {
+    return (
+      <div className="mt-5 grid gap-2 rounded-card border border-line bg-card p-3">
+        {["Lower my payment", "Get cash out", "Just see bids"].map((label) => (
+          <span
+            className="rounded-full border border-line bg-paper px-3 py-2 text-sm font-semibold text-ink"
+            key={label}
+          >
+            {label}
+          </span>
+        ))}
+      </div>
+    );
+  }
+
+  if (step === 1) {
+    return (
+      <div className="mt-5 rounded-card border border-line bg-card p-3">
+        <div className="mb-2 flex items-center justify-between text-xs text-text-muted">
+          <span>Bid Room</span>
+          <span className="vr-data">48h</span>
+        </div>
+        {["6.08% APR", "6.21% APR", "6.49% APR"].map((label, index) => (
+          <div
+            className="grid grid-cols-[1fr_auto] border-t border-line py-2 text-sm first:border-t-0"
+            key={label}
+          >
+            <span>Paddle #{index + 1}</span>
+            <span className="vr-data font-semibold text-ink">{label}</span>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-5 rounded-card border border-line bg-card p-3">
+      {["Name", "Phone", "Street address"].map((label, index) => (
+        <div
+          className="flex items-center justify-between gap-4 border-t border-line py-2 text-sm first:border-t-0"
+          key={label}
+        >
+          <span>{label}</span>
+          <span
+            className="vr-redaction h-3"
+            style={{ width: `${60 + index * 12}%` }}
+          />
+        </div>
+      ))}
+      <p className="mt-2 text-xs font-semibold text-verified">
+        Reveal to one lender
+      </p>
+    </div>
+  );
+}
+
+function WaitlistInlineLink() {
+  return (
+    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <p className="text-sm leading-6 text-text-muted">
+        Prefer a softer step? Join the state waitlist instead of starting a
+        listing today.
+      </p>
+      <Button href="/waitlist" variant="secondary">
+        Join waitlist
+      </Button>
+    </div>
   );
 }
 
@@ -191,7 +328,7 @@ function ComparisonColumn({
   return (
     <div className="border-b border-line p-6 last:border-b-0 md:border-b-0 md:border-r md:last:border-r-0">
       <h3 className="font-display text-2xl font-semibold text-ink">{title}</h3>
-      <ul className="mt-5 grid gap-3 text-sm leading-6 text-ink-90">
+      <ul className="mt-5 grid gap-3 text-sm leading-6 text-text">
         {items.map((item) => (
           <li className="border-t border-line pt-3" key={item}>
             {item}
@@ -216,13 +353,15 @@ function BidIndexTeaser() {
     .join(" ");
 
   return (
-    <div className="rounded-card border border-line bg-paper p-5">
+    <div className="rounded-card border border-line bg-card p-5">
       <div className="mb-4 flex items-center justify-between gap-4">
         <p className="font-semibold text-ink">Median bid APR by credit band</p>
-        <p className="vr-data text-xs text-slate">Updated weekly · Demo</p>
+        <p className="vr-data text-xs text-text-muted">
+          As of Jun 11 · Illustrative
+        </p>
       </div>
       <svg
-        aria-label="Demo median bid APR line trending lower over the week"
+        aria-label="Illustrative chart of how the weekly bid index will display"
         className="h-56 w-full"
         role="img"
         viewBox="0 0 100 100"

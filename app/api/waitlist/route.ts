@@ -11,6 +11,10 @@ import { prisma } from "@/lib/prisma";
 const waitlistSchema = z.object({
   email: z.string().email(),
   source: z.string().max(120).optional(),
+  state: z
+    .string()
+    .regex(/^[A-Z]{2}$/)
+    .optional(),
 });
 
 export async function POST(request: Request) {
@@ -50,13 +54,19 @@ export async function POST(request: Request) {
   await prisma.waitlistEntry.upsert({
     where: { email },
     update: {
-      source: parsed.data.source,
+      source: waitlistSource(parsed.data.source, parsed.data.state),
     },
     create: {
       email,
-      source: parsed.data.source,
+      source: waitlistSource(parsed.data.source, parsed.data.state),
     },
   });
 
   return NextResponse.json({ ok: true });
+}
+
+function waitlistSource(source?: string, state?: string) {
+  return [source ?? "waitlist", state ? `state:${state}` : undefined]
+    .filter(Boolean)
+    .join("|");
 }

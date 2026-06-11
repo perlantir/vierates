@@ -6,7 +6,7 @@ export default function LenderOnboardingPage() {
   return (
     <>
       <NavBar />
-      <main className="vr-section bg-bone">
+      <main className="vr-section bg-paper">
         <div className="vr-frame">
           <LenderOnboardingWizard />
         </div>

@@ -17,13 +17,12 @@ const variantClasses: Record<NonNullable<ButtonProps["variant"]>, string> = {
   secondary:
     "border-line-strong bg-transparent text-ink hover:border-ink hover:bg-ink/[0.03]",
   ghost: "border-transparent bg-transparent text-ink hover:bg-ink/[0.05]",
-  danger:
-    "border-signal bg-transparent text-signal hover:bg-[var(--signal-tint)]",
-  dark: "border-ink bg-ink text-on-ink hover:border-ink-80 hover:bg-ink-80",
+  danger: "border-alert bg-transparent text-alert hover:bg-[var(--alert-tint)]",
+  dark: "border-ink bg-ink text-on-ink hover:border-ink-700 hover:bg-ink-700",
 };
 
 const sizeClasses: Record<NonNullable<ButtonProps["size"]>, string> = {
-  sm: "min-h-9 px-3.5 text-sm",
+  sm: "min-h-11 px-3.5 text-sm",
   md: "min-h-11 px-[18px] text-base",
   lg: "min-h-[52px] px-7 text-lg",
 };
@@ -41,7 +40,7 @@ export function Button({
   const className = [
     "inline-flex items-center justify-center gap-2 rounded-button border font-semibold leading-none transition-colors duration-150",
     "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--focus-ring)]",
-    "disabled:cursor-not-allowed disabled:opacity-45",
+    "disabled:cursor-not-allowed disabled:opacity-60",
     fullWidth ? "w-full" : "w-auto",
     sizeClasses[size],
     variantClasses[variant],

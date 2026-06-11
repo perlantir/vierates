@@ -50,7 +50,7 @@ export function BorrowerDashboard({ listing }: BorrowerDashboardProps) {
 
   if (!listing || deleted) {
     return (
-      <main className="vr-section min-h-screen bg-bone">
+      <main className="vr-section min-h-screen bg-paper">
         <div className="vr-frame">
           <EmptyState
             actionHref="/app/new"
@@ -112,18 +112,18 @@ export function BorrowerDashboard({ listing }: BorrowerDashboardProps) {
   }
 
   return (
-    <main className="vr-section min-h-screen bg-bone">
+    <main className="vr-section min-h-screen bg-paper">
       <div className="vr-frame grid gap-6">
         <header className="flex flex-col justify-between gap-4 border-b border-line pb-6 md:flex-row md:items-end">
           <div>
             <h1 className="font-sans text-4xl font-semibold leading-tight text-ink md:text-5xl">
               Borrower dashboard
             </h1>
-            <p className="mt-3 max-w-2xl text-slate">
+            <p className="mt-3 max-w-2xl text-text-muted">
               Your listing stays anonymous until you choose a lender.
             </p>
           </div>
-          <span className="w-fit rounded-ui border border-line bg-paper px-3 py-2 text-sm font-semibold text-ink">
+          <span className="w-fit rounded-ui border border-line bg-card px-3 py-2 text-sm font-semibold text-ink">
             {listing.status}
           </span>
         </header>
@@ -135,12 +135,12 @@ export function BorrowerDashboard({ listing }: BorrowerDashboardProps) {
                 <h2 className="font-sans text-2xl font-semibold text-ink">
                   Listing status
                 </h2>
-                <p className="mt-2 text-sm leading-6 text-slate">
+                <p className="mt-2 text-sm leading-6 text-text-muted">
                   {listing.county ?? "Matched county"}, {listing.state} ·{" "}
                   {humanize(listing.propertyType)} · {humanize(listing.purpose)}
                 </p>
               </div>
-              <span className="rounded-ui border border-line bg-bone px-3 py-2 text-sm font-semibold text-slate">
+              <span className="rounded-ui border border-line bg-paper px-3 py-2 text-sm font-semibold text-text-muted">
                 {listing.propertyMatchOk ? "Property matched" : "Manual review"}
               </span>
             </div>
@@ -164,7 +164,7 @@ export function BorrowerDashboard({ listing }: BorrowerDashboardProps) {
                 Bid Room
               </h2>
               <div className="mt-4 grid gap-3">
-                <p className="text-sm text-slate">
+                <p className="text-sm text-text-muted">
                   Auction {humanize(listing.auction.status)} · closes{" "}
                   <span className="vr-data">
                     {new Date(listing.auction.closesAt).toLocaleString()}
@@ -173,7 +173,7 @@ export function BorrowerDashboard({ listing }: BorrowerDashboardProps) {
                 <p className="font-mono text-4xl font-semibold text-paddle">
                   {listing.auction.bidCount}
                 </p>
-                <p className="text-sm text-slate">bids received</p>
+                <p className="text-sm text-text-muted">bids received</p>
                 <div>
                   <Button href={`/app/auction/${listing.auction.id}`}>
                     Compare bids
@@ -183,7 +183,7 @@ export function BorrowerDashboard({ listing }: BorrowerDashboardProps) {
             </article>
           ) : (
             <TwoDoors
-              assumptions={`${currency(listing.loanAmount)} loan, ${listing.ltvBand}% LTV, ${humanize(listing.creditBandStated)} stated credit band, 45-day lock. Example development data.`}
+              assumptions={`${currency(listing.loanAmount)} loan, ${listing.ltvBand}% LTV, ${humanize(listing.creditBandStated)} stated credit band, 45-day lock. Illustrative data until aggregate VieRates auction data is available.`}
               highApr="6.72"
               lowApr="6.21"
             />
@@ -205,7 +205,7 @@ export function BorrowerDashboard({ listing }: BorrowerDashboardProps) {
                     <p className="font-semibold text-ink">
                       {connection.lenderName}
                     </p>
-                    <p className="text-sm text-slate">
+                    <p className="text-sm text-text-muted">
                       {humanize(connection.status)} · NMLS {connection.nmlsId}
                     </p>
                   </li>
@@ -226,7 +226,7 @@ export function BorrowerDashboard({ listing }: BorrowerDashboardProps) {
             <h2 className="font-sans text-2xl font-semibold text-ink">
               Rate watch
             </h2>
-            <label className="mt-4 flex min-h-11 items-center justify-between gap-4 rounded-ui border border-line bg-paper p-3">
+            <label className="mt-4 flex min-h-11 items-center justify-between gap-4 rounded-ui border border-line bg-card p-3">
               <span className="text-sm font-semibold text-ink">
                 Keep watching this market
               </span>
@@ -240,18 +240,18 @@ export function BorrowerDashboard({ listing }: BorrowerDashboardProps) {
             </label>
           </article>
 
-          <article className="vr-card border-signal p-5">
+          <article className="vr-card border-alert p-5">
             <h2 className="font-sans text-2xl font-semibold text-ink">
               Delete listing and data
             </h2>
-            <p className="mt-2 text-sm leading-6 text-slate">
+            <p className="mt-2 text-sm leading-6 text-text-muted">
               This removes your identity vault details and closes the listing.
               Type DELETE to confirm.
             </p>
             <label className="mt-4 grid gap-2 text-sm font-semibold text-ink">
               Confirmation
               <input
-                className="min-h-11 rounded-ui border border-line bg-paper px-3 text-base font-normal"
+                className="min-h-11 rounded-ui border border-line bg-card px-3 text-base font-normal"
                 onChange={(event) => setConfirmText(event.target.value)}
                 value={confirmText}
               />
@@ -269,7 +269,7 @@ export function BorrowerDashboard({ listing }: BorrowerDashboardProps) {
         </section>
 
         {message ? (
-          <p className="rounded-ui border border-line bg-paper p-3 text-sm text-slate">
+          <p className="rounded-ui border border-line bg-card p-3 text-sm text-text-muted">
             {message}
           </p>
         ) : null}
@@ -281,7 +281,7 @@ export function BorrowerDashboard({ listing }: BorrowerDashboardProps) {
 function Metric({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <dt className="text-xs font-semibold text-slate">{label}</dt>
+      <dt className="text-xs font-semibold text-text-muted">{label}</dt>
       <dd className="vr-data mt-1 text-base font-semibold text-ink">{value}</dd>
     </div>
   );
@@ -291,7 +291,7 @@ function TimelineStub({ label }: { label: string }) {
   return (
     <li className="grid gap-1 border-l-2 border-line pl-4">
       <p className="font-semibold text-ink">{label}</p>
-      <p className="text-sm text-slate">Waiting for a selected lender.</p>
+      <p className="text-sm text-text-muted">Waiting for a selected lender.</p>
     </li>
   );
 }

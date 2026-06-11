@@ -25,7 +25,7 @@ export default async function NewListingPage({
     : null;
 
   return (
-    <main className="min-h-screen bg-bone px-5 py-6 md:px-8 md:py-10">
+    <main className="min-h-screen bg-paper px-5 py-6 md:px-8 md:py-10">
       {!state || stateRule?.status === StateStatus.GREEN ? (
         <ListingWizard initialResumeToken={rawResume} initialState={state} />
       ) : null}

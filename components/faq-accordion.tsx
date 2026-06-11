@@ -34,7 +34,7 @@ export function FaqAccordion({
               <span>{item.question}</span>
               <span
                 aria-hidden="true"
-                className="relative h-6 w-6 flex-none text-slate"
+                className="relative h-6 w-6 flex-none text-text-muted"
               >
                 <span className="absolute left-1 top-[11px] h-0.5 w-4 bg-current" />
                 <span
@@ -46,7 +46,7 @@ export function FaqAccordion({
               </span>
             </button>
             {isOpen ? (
-              <p className="max-w-3xl px-1 pb-5 text-base leading-7 text-ink-90">
+              <p className="max-w-3xl px-1 pb-5 text-base leading-7 text-text">
                 {item.answer}
               </p>
             ) : null}

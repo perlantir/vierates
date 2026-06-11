@@ -11,7 +11,7 @@ import { getPostHogClient } from "@/lib/observability/posthog";
 import { prisma } from "@/lib/prisma";
 
 const funnelSchema = z.object({
-  event: z.enum(["wizard_step_viewed", "wizard_step_completed"]),
+  event: z.enum(["page_view", "wizard_step_viewed", "wizard_step_completed"]),
   metadata: z.record(z.string(), z.unknown()).optional(),
   sessionId: z.string().min(8).max(128),
   step: z.string().min(1).max(80),
@@ -21,7 +21,9 @@ const funnelSchema = z.object({
 const allowedMetadataKeys = new Set([
   "field",
   "gated",
+  "path",
   "propertyMatchOk",
+  "surface",
   "state",
 ]);
 

@@ -5,7 +5,6 @@ import { useMemo, useState } from "react";
 import { LenderCard } from "@/components/lender-card";
 import { Button } from "@/components/ui/button";
 import { ConsentCheckbox } from "@/components/ui/consent-checkbox";
-import { EmptyState } from "@/components/ui/empty-state";
 import { consentTextForParty } from "@/lib/consent/text";
 
 export type DirectoryConnection = {
@@ -78,21 +77,6 @@ export function LenderDirectory({ lenders, listing }: LenderDirectoryProps) {
     [lenders, specialtyFilter, stateFilter],
   );
 
-  if (!listing) {
-    return (
-      <main className="vr-section min-h-screen bg-bone">
-        <div className="vr-frame">
-          <EmptyState
-            actionHref="/app/new"
-            actionLabel="Start my listing"
-            body="Create a listing before requesting lender introductions."
-            title="No listing yet"
-          />
-        </div>
-      </main>
-    );
-  }
-
   async function requestConnection() {
     if (!selectedLender || !listing || !consentHash) {
       return;
@@ -163,25 +147,40 @@ export function LenderDirectory({ lenders, listing }: LenderDirectoryProps) {
   }
 
   return (
-    <main className="vr-section min-h-screen bg-bone">
+    <main className="vr-section min-h-screen bg-paper">
       <div className="vr-frame grid gap-6">
         <header className="border-b border-line pb-6">
           <h1 className="font-sans text-4xl font-semibold leading-tight text-ink md:text-5xl">
             Lender directory
           </h1>
-          <p className="mt-3 max-w-2xl text-slate">
+          <p className="mt-3 max-w-2xl text-text-muted">
             Request one introduction at a time. Each request names the lender
             and records your consent.
           </p>
         </header>
 
+        {!listing ? (
+          <section className="vr-card flex flex-col justify-between gap-4 border-info bg-info-tint p-5 md:flex-row md:items-center">
+            <div>
+              <h2 className="font-sans text-2xl font-semibold text-ink">
+                Browse first. Request later.
+              </h2>
+              <p className="mt-2 text-sm leading-6 text-text-muted">
+                You can review approved lenders now. Start an anonymous listing
+                when you are ready to request an introduction.
+              </p>
+            </div>
+            <Button href="/app/new">Start my listing</Button>
+          </section>
+        ) : null}
+
         {activeConnection ? (
-          <section className="vr-card flex flex-col justify-between gap-4 border-funded p-5 md:flex-row md:items-center">
+          <section className="vr-card flex flex-col justify-between gap-4 border-verified p-5 md:flex-row md:items-center">
             <div>
               <h2 className="font-sans text-2xl font-semibold text-ink">
                 Active introduction
               </h2>
-              <p className="mt-2 text-sm text-slate">
+              <p className="mt-2 text-sm text-text-muted">
                 {activeConnection.lenderName} · NMLS {activeConnection.nmlsId} ·{" "}
                 {humanize(activeConnection.status)}
               </p>
@@ -200,7 +199,7 @@ export function LenderDirectory({ lenders, listing }: LenderDirectoryProps) {
           <label className="grid gap-2 text-sm font-semibold text-ink">
             State
             <select
-              className="min-h-11 rounded-ui border border-line bg-paper px-3 text-base font-normal"
+              className="min-h-11 rounded-ui border border-line bg-card px-3 text-base font-normal"
               onChange={(event) => setStateFilter(event.target.value)}
               value={stateFilter}
             >
@@ -219,7 +218,7 @@ export function LenderDirectory({ lenders, listing }: LenderDirectoryProps) {
           <label className="grid gap-2 text-sm font-semibold text-ink">
             Specialty
             <select
-              className="min-h-11 rounded-ui border border-line bg-paper px-3 text-base font-normal"
+              className="min-h-11 rounded-ui border border-line bg-card px-3 text-base font-normal"
               onChange={(event) => setSpecialtyFilter(event.target.value)}
               value={specialtyFilter}
             >
@@ -248,7 +247,7 @@ export function LenderDirectory({ lenders, listing }: LenderDirectoryProps) {
                 specialties={lender.specialties}
               />
               <Button
-                disabled={Boolean(activeConnection)}
+                disabled={!listing || Boolean(activeConnection)}
                 onClick={() => {
                   setSelectedLender(lender);
                   setConsentHash(undefined);
@@ -256,7 +255,7 @@ export function LenderDirectory({ lenders, listing }: LenderDirectoryProps) {
                 }}
                 variant="secondary"
               >
-                Request introduction
+                {listing ? "Request introduction" : "Start listing to request"}
               </Button>
             </div>
           ))}
@@ -271,7 +270,7 @@ export function LenderDirectory({ lenders, listing }: LenderDirectoryProps) {
               <h2 className="font-sans text-2xl font-semibold text-ink">
                 Confirm introduction
               </h2>
-              <p className="mt-2 text-sm leading-6 text-slate">
+              <p className="mt-2 text-sm leading-6 text-text-muted">
                 Only {selectedLender.legalName} receives your contact details
                 for this Connect request.
               </p>
@@ -303,7 +302,7 @@ export function LenderDirectory({ lenders, listing }: LenderDirectoryProps) {
         </section>
 
         {message ? (
-          <p className="rounded-ui border border-line bg-paper p-3 text-sm text-slate">
+          <p className="rounded-ui border border-line bg-card p-3 text-sm text-text-muted">
             {message}
           </p>
         ) : null}
@@ -318,7 +317,7 @@ function TimelineRow({ active, label }: { active: boolean; label: string }) {
       <span
         className={[
           "h-3 w-3 rounded-full border",
-          active ? "border-funded bg-funded" : "border-line bg-paper",
+          active ? "border-verified bg-verified" : "border-line bg-card",
         ].join(" ")}
       />
       <span className="text-sm font-semibold text-ink">{label}</span>

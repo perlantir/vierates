@@ -40,15 +40,15 @@ export function WizardShell({
         <div className="mb-6 flex items-center justify-between gap-4">
           <button
             aria-label="Go back"
-            className="inline-flex h-11 w-11 items-center justify-center rounded-button border border-line bg-paper text-xl font-semibold text-ink disabled:opacity-40"
+            className="inline-flex h-11 w-11 items-center justify-center rounded-button border border-line bg-card text-xl font-semibold text-ink disabled:opacity-40"
             disabled={!onBack}
             onClick={onBack}
             type="button"
           >
             ‹
           </button>
-          <p className="vr-data text-xs text-slate">
-            {currentStep}/{totalSteps}
+          <p className="text-xs font-semibold text-text-muted">
+            About 60 seconds
           </p>
         </div>
         <h1 className="font-sans text-3xl font-semibold leading-tight text-ink md:text-[30px] md:leading-[38px]">
@@ -57,21 +57,21 @@ export function WizardShell({
         {whyWeAsk ? (
           <div className="mt-3">
             <button
-              className="text-sm font-semibold text-slate underline underline-offset-4"
+              className="text-sm font-semibold text-text-muted underline underline-offset-4"
               onClick={() => setShowWhy((value) => !value)}
               type="button"
             >
               Why we ask
             </button>
             {showWhy ? (
-              <p className="mt-2 rounded-ui border border-line bg-paper p-3 text-sm leading-6 text-slate">
+              <p className="mt-2 rounded-ui border border-line bg-card p-3 text-sm leading-6 text-text-muted">
                 {whyWeAsk}
               </p>
             ) : null}
           </div>
         ) : null}
         <div className="mt-7">{children}</div>
-        <p className="mt-6 border-t border-line pt-4 text-xs font-semibold text-slate">
+        <p className="mt-6 border-t border-line pt-4 text-xs font-semibold text-text-muted">
           {footnote}
         </p>
       </div>

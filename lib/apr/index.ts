@@ -50,7 +50,7 @@ export function calculateAprBp(input: AprInput): AprBasisPoint {
 }
 
 export function formatApr(aprBp: AprBasisPoint): string {
-  return `${(aprBp / 100).toFixed(3)}%`;
+  return `${(aprBp / 100).toFixed(2)}%`;
 }
 
 function monthlyPayment(
