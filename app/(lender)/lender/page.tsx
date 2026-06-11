@@ -4,6 +4,8 @@ import { NavBar } from "@/components/nav-bar";
 import { getCurrentLenderOrgId } from "@/lib/lender/current";
 import { getLenderPortalData } from "@/lib/lender/portal";
 
+export const dynamic = "force-dynamic";
+
 export default async function LenderPage() {
   const lenderOrgId = await getCurrentLenderOrgId();
   const data = lenderOrgId

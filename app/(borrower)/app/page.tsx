@@ -4,6 +4,8 @@ import { NavBar } from "@/components/nav-bar";
 import { getCurrentBorrowerUserId } from "@/lib/borrower/current";
 import { getBorrowerDashboardData } from "@/lib/borrower/dashboard";
 
+export const dynamic = "force-dynamic";
+
 export default async function BorrowerDashboardPage() {
   const borrowerUserId = await getCurrentBorrowerUserId();
   const dashboard = borrowerUserId

@@ -4,6 +4,8 @@ import { NavBar } from "@/components/nav-bar";
 import { getCurrentBorrowerUserId } from "@/lib/borrower/current";
 import { getVerificationFlowData } from "@/lib/borrower/verification";
 
+export const dynamic = "force-dynamic";
+
 export default async function BorrowerVerifyPage() {
   const borrowerUserId = await getCurrentBorrowerUserId();
   const data = borrowerUserId

@@ -4,6 +4,8 @@ import { FooterDisclosures } from "@/components/footer-disclosures";
 import { NavBar } from "@/components/nav-bar";
 import { prisma } from "@/lib/prisma";
 
+export const dynamic = "force-dynamic";
+
 export default async function AdminPage() {
   const [
     pendingLenders,

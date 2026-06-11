@@ -4,6 +4,8 @@ import { NavBar } from "@/components/nav-bar";
 import { getConnectDirectoryData } from "@/lib/borrower/connect";
 import { getCurrentBorrowerUserId } from "@/lib/borrower/current";
 
+export const dynamic = "force-dynamic";
+
 export default async function BorrowerLendersPage() {
   const borrowerUserId = await getCurrentBorrowerUserId();
   const directory = borrowerUserId

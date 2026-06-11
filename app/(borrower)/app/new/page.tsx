@@ -7,6 +7,8 @@ import { SectionHead } from "@/components/section-head";
 import { WaitlistForm } from "@/components/waitlist-form";
 import { prisma } from "@/lib/prisma";
 
+export const dynamic = "force-dynamic";
+
 type NewListingPageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
