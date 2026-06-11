@@ -46,9 +46,9 @@ function MarketChart() {
               <span className="font-semibold text-ink">{band}</span>
               <span className="vr-data text-slate">{`${width}% range`}</span>
             </div>
-            <div className="h-3 rounded-full bg-bone">
+            <div className="h-3 rounded-full bg-[var(--paddle-tint)]">
               <div
-                className="h-full rounded-full bg-ink"
+                className="h-full rounded-full bg-ink-700"
                 style={{ width: `${width}%` }}
               />
             </div>

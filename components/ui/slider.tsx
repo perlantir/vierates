@@ -29,7 +29,7 @@ export function Slider({
         </span>
       </span>
       <input
-        className="mt-3 w-full accent-ink"
+        className="mt-3 min-h-14 w-full accent-ink"
         max={max}
         min={min}
         onChange={(event) => onChange(Number(event.target.value))}

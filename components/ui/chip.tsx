@@ -9,7 +9,7 @@ export function Chip({ children, selected = false, onClick }: ChipProps) {
     <button
       aria-pressed={selected}
       className={[
-        "min-h-11 rounded-ui border px-4 text-left text-sm font-semibold transition-colors",
+        "min-h-14 rounded-full border px-5 text-left text-sm font-semibold transition-colors",
         selected
           ? "border-ink bg-ink text-on-ink"
           : "border-line bg-paper text-ink hover:border-line-strong",

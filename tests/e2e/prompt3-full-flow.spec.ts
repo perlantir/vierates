@@ -60,15 +60,18 @@ test("full borrower flow writes all prompt 3 consents and schedules auction", as
     .first()
     .click();
   await page.getByRole("checkbox").check();
-  await page.getByRole("button", { name: "Send introduction" }).click();
+  await page
+    .getByRole("button", { name: "Request introduction" })
+    .last()
+    .click();
   await expect(page.getByText("Introduction delivered.")).toBeVisible();
 
   await page.goto("/app/verify");
-  await page.getByRole("button", { name: "Continue" }).click();
-  await page.getByRole("button", { name: "Run soft inquiry sandbox" }).click();
-  await page.getByRole("button", { name: "Verify income sandbox" }).click();
+  await page.getByRole("button", { name: "Start credit step" }).click();
+  await page.getByRole("button", { name: "Connect to Array sandbox" }).click();
+  await page.getByRole("button", { name: "Connect to Truv sandbox" }).click();
   await expect(page.getByTestId("masked-preview")).toBeVisible();
-  await page.getByRole("button", { name: "Schedule my Bid Room" }).click();
+  await page.getByRole("button", { name: "Open my auction now" }).click();
   await expect(page.getByTestId("verify-done")).toBeVisible();
 
   const identity = await prisma.borrowerIdentity.findFirstOrThrow({

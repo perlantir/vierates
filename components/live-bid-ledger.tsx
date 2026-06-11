@@ -7,8 +7,11 @@ export type LedgerBid = {
   id: string;
   lender: string;
   points: number;
+  product?: string;
+  profile?: string;
   rate: string;
   savings?: string;
+  time?: string;
 };
 
 type LiveBidLedgerProps = {
@@ -51,7 +54,7 @@ export function LiveBidLedger({
     const timer = window.setInterval(() => {
       const next = feed[feedIndex.current % feed.length];
       feedIndex.current += 1;
-      const id = `feed-${Date.now()}`;
+      const id = `feed-${feedIndex.current}`;
       setRows((current) => [{ ...next, id }, ...current].slice(0, maxRows));
       if (!reduce) {
         setEnterId(id);
@@ -61,15 +64,15 @@ export function LiveBidLedger({
     return () => window.clearInterval(timer);
   }, [feed, interval, live, maxRows]);
 
-  const bestRate = rows.length
-    ? Math.min(...rows.map((row) => Number.parseFloat(row.rate)))
+  const bestApr = rows.length
+    ? Math.min(...rows.map((row) => Number.parseFloat(row.apr)))
     : null;
 
   return (
     <section
       aria-label={title}
       className={[
-        "overflow-hidden rounded-lg border shadow-[var(--shadow-2)]",
+        "overflow-hidden rounded-card border shadow-[var(--shadow-2)]",
         dark
           ? "border-ink-line bg-ink text-on-ink"
           : "border-line bg-paper text-ink",
@@ -77,7 +80,7 @@ export function LiveBidLedger({
     >
       <div
         className={[
-          "flex items-center justify-between gap-4 border-b px-4 py-3",
+          "flex items-center justify-between gap-4 border-b px-4 py-2.5 sm:py-3",
           dark ? "border-ink-line" : "border-line",
         ].join(" ")}
       >
@@ -99,23 +102,25 @@ export function LiveBidLedger({
 
       <div
         className={[
-          "grid grid-cols-[1fr_auto_auto_auto] gap-3 px-4 py-2 text-xs font-bold uppercase",
+          "grid grid-cols-[0.68fr_1fr_1fr_auto] gap-3 px-4 py-2 text-xs font-semibold tracking-[0.06em]",
           dark ? "text-on-ink-dim" : "text-slate",
         ].join(" ")}
       >
-        <span>Lender</span>
-        <span className="text-right">Rate</span>
+        <span>Time</span>
+        <span>Profile</span>
+        <span>Product</span>
         <span className="text-right">APR</span>
-        <span className="min-w-11 text-right">Pts</span>
       </div>
 
       <div>
-        {rows.map((row) => {
-          const isBest = Number.parseFloat(row.rate) === bestRate;
+        {rows.map((row, index) => {
+          const isBest = Number.parseFloat(row.apr) === bestApr;
+          const rowTime = row.time ?? `${indexFromId(row.id) * 2}m ago`;
           return (
             <div
               className={[
-                "grid grid-cols-[1fr_auto_auto_auto] items-center gap-3 border-t px-4 py-3",
+                "grid grid-cols-[0.68fr_1fr_1fr_auto] items-center gap-3 border-t px-4 py-2.5 sm:py-3",
+                index > 2 ? "hidden sm:grid" : "",
                 row.id === enterId ? "vr-ledger-enter" : "",
                 dark ? "border-ink-line" : "border-line",
                 isBest && !dark ? "bg-[var(--paddle-tint)]" : "",
@@ -123,46 +128,41 @@ export function LiveBidLedger({
               ].join(" ")}
               key={row.id}
             >
-              <span className="flex min-w-0 items-center gap-2">
-                {isBest ? (
-                  <span className="h-1.5 w-1.5 flex-none rounded-full bg-paddle" />
-                ) : null}
-                <span
-                  className={[
-                    "truncate text-sm",
-                    isBest
-                      ? "font-semibold"
-                      : dark
-                        ? "text-on-ink-dim"
-                        : "text-slate",
-                  ].join(" ")}
-                >
-                  {row.lender}
-                </span>
-              </span>
               <span
                 className={[
-                  "vr-data text-right text-base font-semibold",
-                  isBest ? "text-paddle" : "",
+                  "vr-data text-xs",
+                  dark ? "text-on-ink-dim" : "text-slate",
                 ].join(" ")}
               >
-                {row.rate}%
+                {rowTime}
               </span>
               <span
                 className={[
-                  "vr-data text-right text-sm",
+                  "truncate text-sm",
+                  isBest
+                    ? "font-semibold"
+                    : dark
+                      ? "text-on-ink-dim"
+                      : "text-slate",
+                ].join(" ")}
+              >
+                {row.profile ?? "FICO 720–759"}
+              </span>
+              <span
+                className={[
+                  "truncate text-sm",
                   dark ? "text-on-ink-dim" : "text-slate",
+                ].join(" ")}
+              >
+                {row.product ?? row.lender}
+              </span>
+              <span
+                className={[
+                  "vr-data min-w-20 text-right text-base font-semibold",
+                  isBest ? "text-paddle" : dark ? "text-on-ink" : "text-ink",
                 ].join(" ")}
               >
                 {row.apr}%
-              </span>
-              <span
-                className={[
-                  "vr-data min-w-11 text-right text-sm",
-                  dark ? "text-on-ink-dim" : "text-slate",
-                ].join(" ")}
-              >
-                {row.points.toFixed(2)}
               </span>
               {isBest && row.savings ? (
                 <span className="col-span-4 text-right text-xs font-semibold text-funded">
@@ -176,13 +176,18 @@ export function LiveBidLedger({
 
       <p
         className={[
-          "border-t px-4 py-3 text-xs leading-5",
+          "hidden border-t px-4 py-3 text-xs leading-5 sm:block",
           dark ? "border-ink-line text-on-ink-dim" : "border-line text-slate",
         ].join(" ")}
       >
-        Example bids from participating lenders. Rates shown with APR. Assumes
-        $450,000 loan amount, 75% LTV, 740+ credit band, 45-day lock.
+        Example bids. Lenders see only masked bands before you choose. Assumes
+        $450,000 loan amount, 75% LTV, FICO 740+, 45-day lock.
       </p>
     </section>
   );
+}
+
+function indexFromId(id: string): number {
+  const trailingNumber = Number.parseInt(id.match(/\d+$/)?.[0] ?? "1", 10);
+  return Number.isFinite(trailingNumber) ? trailingNumber : 1;
 }

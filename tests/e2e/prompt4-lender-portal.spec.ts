@@ -135,7 +135,9 @@ test("approved lender can submit a computed-APR bid from the board", async ({
   await expect(
     page.getByRole("heading", { name: "Lender board" }),
   ).toBeVisible();
-  await page.getByRole("button", { name: "Submit demo bid" }).click();
+  await page
+    .getByRole("button", { name: "Place bid — 1 credit + $2 data surcharge" })
+    .click();
   await expect(page.getByText(/Bid submitted at APR/)).toBeVisible();
 
   const bid = await prisma.bid.findFirst({

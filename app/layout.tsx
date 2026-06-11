@@ -1,16 +1,18 @@
 import type { Metadata } from "next";
-import { Bricolage_Grotesque, IBM_Plex_Mono, Inter } from "next/font/google";
+import { IBM_Plex_Mono, IBM_Plex_Sans, IBM_Plex_Serif } from "next/font/google";
 
 import "./globals.css";
 
-const bricolage = Bricolage_Grotesque({
+const plexSerif = IBM_Plex_Serif({
   subsets: ["latin"],
-  variable: "--font-bricolage",
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-plex-serif",
 });
 
-const inter = Inter({
+const plexSans = IBM_Plex_Sans({
   subsets: ["latin"],
-  variable: "--font-inter",
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-plex-sans",
 });
 
 const plexMono = IBM_Plex_Mono({
@@ -36,7 +38,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${bricolage.variable} ${inter.variable} ${plexMono.variable}`}
+      className={`${plexSerif.variable} ${plexSans.variable} ${plexMono.variable}`}
     >
       <body className="font-sans antialiased">{children}</body>
     </html>

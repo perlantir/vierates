@@ -1,8 +1,8 @@
 const defaultItems = [
-  "Free for borrowers, forever",
-  "Soft pull only — no score impact",
+  "Free for borrowers — always",
   "Your data is never sold",
-  "Equal Housing Opportunity",
+  "Soft check only — no score impact",
+  "Licensed, NMLS-verified lenders",
 ];
 
 export function TrustBar({
@@ -17,7 +17,7 @@ export function TrustBar({
   return (
     <div
       className={[
-        "flex flex-wrap items-center gap-x-7 gap-y-3 border-y py-4 text-sm font-medium",
+        "flex flex-wrap items-center gap-x-7 gap-y-3 border-y py-4 text-xs font-semibold tracking-[0.06em]",
         dark ? "border-ink-line text-on-ink" : "border-line text-ink-90",
       ].join(" ")}
       role="list"

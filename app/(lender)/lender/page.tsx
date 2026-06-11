@@ -1,6 +1,4 @@
-import { FooterDisclosures } from "@/components/footer-disclosures";
 import { LenderPortal } from "@/components/lender/portal/lender-portal";
-import { NavBar } from "@/components/nav-bar";
 import { getCurrentLenderOrgId } from "@/lib/lender/current";
 import { getLenderPortalData } from "@/lib/lender/portal";
 
@@ -58,23 +56,19 @@ export default async function LenderPage() {
     : null;
 
   return (
-    <>
-      <NavBar />
-      <LenderPortal
-        auctions={auctions}
-        bids={bids}
-        org={
-          data.org
-            ? {
-                id: data.org.id,
-                legalName: data.org.legalName,
-                status: data.org.status,
-              }
-            : null
-        }
-        wallet={wallet}
-      />
-      <FooterDisclosures />
-    </>
+    <LenderPortal
+      auctions={auctions}
+      bids={bids}
+      org={
+        data.org
+          ? {
+              id: data.org.id,
+              legalName: data.org.legalName,
+              status: data.org.status,
+            }
+          : null
+      }
+      wallet={wallet}
+    />
   );
 }

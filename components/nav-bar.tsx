@@ -14,9 +14,8 @@ type NavLink = {
 
 const primaryLinks: NavLink[] = [
   { href: "/how-it-works", label: "How it works" },
-  { href: "/bid-index", label: "Bid index" },
-  { href: "/trust", label: "Trust" },
-  { href: "/lenders", label: "Lenders" },
+  { href: "/bid-index", label: "Bid Index" },
+  { href: "/lenders", label: "For lenders" },
 ];
 
 const mobileActions: NavLink[] = [
@@ -57,7 +56,7 @@ export function NavBar() {
         >
           <Image
             alt="VieRates"
-            className="h-9 w-auto md:h-10"
+            className="h-8 w-[136px] md:h-10 md:w-auto"
             height={44}
             priority
             src="/assets/wordmark.svg"
@@ -86,10 +85,11 @@ export function NavBar() {
 
         <div className="flex items-center gap-2 md:hidden">
           <Link
-            className="inline-flex min-h-11 items-center justify-center rounded-ui border border-paddle bg-paddle px-3 text-sm font-semibold leading-none text-ink no-underline transition-colors duration-150 hover:border-[var(--paddle-deep)] hover:bg-[var(--paddle-deep)]"
+            className="inline-flex min-h-11 items-center justify-center rounded-button border border-paddle bg-paddle px-3 text-sm font-semibold leading-none text-ink-900 no-underline transition-colors duration-150 hover:border-paddle-deep hover:bg-paddle-deep"
             href="/app/new"
           >
-            Start
+            <span className="hidden min-[390px]:inline">Start my listing</span>
+            <span className="min-[390px]:hidden">Start</span>
           </Link>
           <button
             aria-controls="mobile-navigation"
@@ -97,7 +97,7 @@ export function NavBar() {
             aria-label={
               menuOpen ? "Close navigation menu" : "Open navigation menu"
             }
-            className="inline-flex h-11 w-11 items-center justify-center rounded-ui border border-line-strong bg-paper text-ink transition-colors duration-150 hover:border-ink"
+            className="inline-flex h-11 w-11 items-center justify-center rounded-button border border-line-strong bg-paper text-ink transition-colors duration-150 hover:border-ink"
             onClick={() => setMenuOpen((open) => !open)}
             type="button"
           >
@@ -137,7 +137,7 @@ export function NavBar() {
 
               <div className="mt-3 grid gap-2 border-t border-line pt-3">
                 <Link
-                  className="inline-flex min-h-[52px] items-center justify-center rounded-ui border border-paddle bg-paddle px-4 text-base font-semibold leading-none text-ink no-underline transition-colors duration-150 hover:border-[var(--paddle-deep)] hover:bg-[var(--paddle-deep)]"
+                  className="inline-flex min-h-[52px] items-center justify-center rounded-button border border-paddle bg-paddle px-4 text-base font-semibold leading-none text-ink-900 no-underline transition-colors duration-150 hover:border-paddle-deep hover:bg-paddle-deep"
                   href="/app/new"
                 >
                   Start my listing
@@ -184,7 +184,7 @@ function MobileNavLink({ active, href, label }: NavLink & { active: boolean }) {
     <Link
       aria-current={active ? "page" : undefined}
       className={[
-        "flex min-h-[52px] items-center justify-between rounded-ui border px-4 text-base font-semibold no-underline transition-colors duration-150",
+        "flex min-h-[52px] items-center justify-between rounded-card border px-4 text-base font-semibold no-underline transition-colors duration-150",
         active
           ? "border-ink bg-ink text-on-ink"
           : "border-line bg-paper text-ink hover:border-line-strong",
@@ -206,7 +206,7 @@ function MobileActionLink({
     <Link
       aria-current={active ? "page" : undefined}
       className={[
-        "inline-flex min-h-12 items-center justify-center rounded-ui border px-3 text-center text-sm font-semibold leading-tight no-underline transition-colors duration-150",
+        "inline-flex min-h-12 items-center justify-center rounded-button border px-3 text-center text-sm font-semibold leading-tight no-underline transition-colors duration-150",
         active
           ? "border-ink bg-ink text-on-ink"
           : "border-line-strong bg-transparent text-ink hover:border-ink hover:bg-ink/[0.03]",

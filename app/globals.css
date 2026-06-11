@@ -3,30 +3,46 @@
 @tailwind utilities;
 
 :root {
-  --ink: #0e1626;
-  --bone: #f6f7f4;
-  --paddle: #f2a30f;
-  --slate: #5a6478;
-  --funded: #177e63;
-  --signal: #c9303d;
-  --ink-90: #1b2436;
-  --ink-80: #28324a;
-  --paper: #ffffff;
-  --line: #e3e5e0;
-  --line-strong: #cfd2cc;
-  --slate-weak: #8a92a1;
-  --paddle-tint: #fdf1d6;
-  --paddle-deep: #c9870a;
-  --funded-tint: #e2f0eb;
-  --signal-tint: #f8e2e4;
-  --ink-surface: #0e1626;
-  --ink-raised: #19223a;
-  --ink-line: #2a3450;
-  --on-ink: #eef1f6;
-  --on-ink-dim: #9aa4b8;
-  --focus-ring: #2b6cb0;
-  --font-display: var(--font-bricolage), "Inter", sans-serif;
-  --font-body: var(--font-inter), system-ui, -apple-system, sans-serif;
+  --ink-900: #07211b;
+  --ink-800: #0c2a23;
+  --ink-700: #143b31;
+  --ink-600: #1e4f42;
+  --paper: #f5f7f3;
+  --card: #ffffff;
+  --line: #dce3db;
+  --text: #13241f;
+  --text-muted: #54655c;
+  --text-faint: #7e8c83;
+  --paddle: #d9a52b;
+  --paddle-deep: #b8881c;
+  --paddle-tint: #f9efd6;
+  --verified: #14724b;
+  --verified-tint: #e4f2ea;
+  --info: #2f5d7e;
+  --info-tint: #e8f0f6;
+  --alert: #b23b2e;
+  --alert-tint: #f9e9e7;
+  --caution: #8a4d0f;
+  --caution-tint: #f6eddf;
+  --ink: var(--ink-800);
+  --bone: var(--paper);
+  --slate: var(--text-muted);
+  --funded: var(--verified);
+  --signal: var(--alert);
+  --ink-90: var(--text);
+  --ink-80: var(--ink-700);
+  --line-strong: #c9d4ca;
+  --slate-weak: var(--text-faint);
+  --funded-tint: var(--verified-tint);
+  --signal-tint: var(--alert-tint);
+  --ink-surface: var(--ink-800);
+  --ink-raised: var(--ink-700);
+  --ink-line: var(--ink-600);
+  --on-ink: #ffffff;
+  --on-ink-dim: #c7d3cc;
+  --focus-ring: var(--ink-800);
+  --font-display: var(--font-plex-serif), Georgia, serif;
+  --font-body: var(--font-plex-sans), Arial, sans-serif;
   --font-data: var(--font-plex-mono), ui-monospace, "SF Mono", Menlo, monospace;
   --fs-12: 0.75rem;
   --fs-14: 0.875rem;
@@ -49,12 +65,12 @@
   --space-9: 96px;
   --radius-sm: 4px;
   --radius: 8px;
-  --radius-lg: 12px;
-  --shadow-1:
-    0 1px 2px rgba(14, 22, 38, 0.06), 0 1px 1px rgba(14, 22, 38, 0.04);
-  --shadow-2:
-    0 4px 16px rgba(14, 22, 38, 0.1), 0 1px 3px rgba(14, 22, 38, 0.06);
-  --maxw: 1100px;
+  --radius-button: 10px;
+  --radius-card: 14px;
+  --radius-lg: 14px;
+  --shadow-1: 0 1px 2px rgb(7 33 27 / 6%), 0 4px 12px rgb(7 33 27 / 6%);
+  --shadow-2: 0 1px 2px rgb(7 33 27 / 6%), 0 4px 12px rgb(7 33 27 / 6%);
+  --maxw: 1200px;
   --maxw-prose: 680px;
   --gutter: 24px;
   --gutter-mobile: 16px;
@@ -71,15 +87,15 @@
 }
 
 html {
-  background: var(--bone);
-  color: var(--ink);
+  background: var(--paper);
+  color: var(--text);
 }
 
 body {
   min-height: 100vh;
   margin: 0;
-  background: var(--bone);
-  color: var(--ink);
+  background: var(--paper);
+  color: var(--text);
 }
 
 a {
@@ -117,9 +133,9 @@ a:hover {
 }
 
 .vr-card {
-  background: var(--paper);
+  background: var(--card);
   border: 1px solid var(--line);
-  border-radius: var(--radius);
+  border-radius: var(--radius-card);
   box-shadow: var(--shadow-1);
 }
 
@@ -133,8 +149,8 @@ a:hover {
   font-family: var(--font-body);
   font-size: var(--fs-12);
   font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  text-transform: none;
 }
 
 .vr-ruled {
@@ -144,10 +160,31 @@ a:hover {
       0deg,
       transparent 0,
       transparent 31px,
-      rgba(14, 22, 38, 0.055) 31px,
-      rgba(14, 22, 38, 0.055) 32px
+      rgb(7 33 27 / 5.5%) 31px,
+      rgb(7 33 27 / 5.5%) 32px
     );
   background-blend-mode: normal;
+}
+
+.vr-redaction {
+  display: inline-block;
+  height: 0.7em;
+  min-width: 7rem;
+  border-radius: 0;
+  background: var(--ink-900);
+}
+
+.vr-band-chip {
+  display: inline-flex;
+  min-height: 2.25rem;
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--card);
+  padding-inline: 0.75rem;
+  font-family: var(--font-data);
+  font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
 }
 
 .vr-legal {

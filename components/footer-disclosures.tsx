@@ -12,17 +12,16 @@ export function FooterDisclosures() {
           <div>
             <Link
               aria-label="VieRates home"
-              className="inline-flex items-center gap-3 font-display text-2xl font-extrabold no-underline"
+              className="inline-flex items-center no-underline"
               href="/"
             >
               <Image
-                alt=""
-                className="h-9 w-9"
+                alt="VieRates"
+                className="h-10 w-auto"
                 height={44}
-                src="/assets/logo-mark.svg"
-                width={44}
+                src="/assets/wordmark.svg"
+                width={190}
               />
-              <span>VieRates</span>
             </Link>
             <p className="mt-3 max-w-[18rem] text-sm leading-6 text-on-ink-dim">
               Make lenders vie for you.
@@ -72,6 +71,12 @@ export function FooterDisclosures() {
         <p className="mt-5 max-w-3xl text-xs leading-5 text-on-ink-dim">
           {FOOTER_DISCLOSURE}
         </p>
+        <Link
+          className="mt-2 inline-flex text-xs font-semibold text-on-ink no-underline underline-offset-4 hover:underline"
+          href="https://www.nmlsconsumeraccess.org/"
+        >
+          NMLS Consumer Access
+        </Link>
         <p className="vr-data mt-4 text-xs text-on-ink-dim">
           © 2026 VieRates, Inc. · NMLS #[STAT]
         </p>

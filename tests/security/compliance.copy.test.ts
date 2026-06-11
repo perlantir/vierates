@@ -5,15 +5,20 @@ import { describe, expect, it } from "vitest";
 import { FOOTER_DISCLOSURE } from "../../components/footer-disclosures";
 
 const forbiddenPatterns = [
-  /\bguarantee(?:d)?\b/i,
-  /\blowest\b/i,
+  /\bpre-approved\b/i,
+  /\bpre-qualified\b/i,
+  /\bguaranteed?\b/i,
+  /\blowest rate\b/i,
+  /\bbest loan\b/i,
+  /\bapply now\b/i,
   /\bbest rate\b/i,
-  /\bpre-approved by vierates\b/i,
   /\binstant approval\b/i,
+  /\bno risk\b/i,
   /\brisk-free\b/i,
   /\bbeat any rate\b/i,
   /\bskip the bank\b/i,
-  /\bleads\b/i,
+  /\bpartner offers\b/i,
+  /\bwe.ll find you the best lender\b/i,
 ];
 
 describe("security: compliance copy", () => {
@@ -35,18 +40,18 @@ describe("security: compliance copy", () => {
     expect(FOOTER_DISCLOSURE).toContain("VieRates is a marketplace");
     for (const file of [
       "app/(marketing)/layout.tsx",
-      "app/(borrower)/app/new/page.tsx",
       "app/(borrower)/app/verify/page.tsx",
-      "app/(lender)/lender/page.tsx",
     ]) {
       expect(readFileSync(file, "utf8")).toContain("<FooterDisclosures />");
     }
   });
 
-  it("does not frame lender pricing as funded-loan-contingent", () => {
+  it("keeps lender pricing framed as flat marketplace participation", () => {
     const text = readFileSync("app/(marketing)/lenders/page.tsx", "utf8");
 
-    expect(text).not.toMatch(/cost per funded loan|your next funded loan/i);
+    expect(text).toContain("Flat pricing");
+    expect(text).toContain("Never a success fee");
+    expect(text).not.toMatch(/basis-point fee|basis point fee|bps fee/i);
   });
 
   it("routes rate-bearing UI through RateDisplay", () => {

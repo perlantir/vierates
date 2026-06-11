@@ -63,7 +63,7 @@ export function VerificationFlow({ listing }: VerificationFlowProps) {
         <div className="vr-frame">
           <EmptyState
             actionHref="/app/new"
-            actionLabel="Start my free listing"
+            actionLabel="Start my listing"
             body="Create a listing before opening a Bid Room."
             title="No listing ready"
           />
@@ -159,7 +159,7 @@ export function VerificationFlow({ listing }: VerificationFlowProps) {
       <div className="vr-frame">
         <WizardShell
           currentStep={step}
-          footnote="Anonymous - hidden until you pick"
+          footnote="🔒 Anonymous — hidden until you pick"
           onBack={
             step > 1 && step < 5
               ? () => setStep((value) => value - 1)
@@ -175,18 +175,23 @@ export function VerificationFlow({ listing }: VerificationFlowProps) {
               <p className="text-sm leading-6 text-slate">
                 {SOFT_PULL_SENTENCE}
               </p>
-              <p className="text-sm leading-6 text-slate">
-                We verify credit and income once, then show lenders the same
-                masked profile you can review first.
-              </p>
-              <Button onClick={() => setStep(2)}>Continue</Button>
+              <div className="rounded-card border border-line bg-paper p-4">
+                <p className="text-sm font-semibold text-ink">
+                  You&apos;re one step from your Bid Room.
+                </p>
+                <ol className="mt-3 grid gap-2 text-sm leading-6 text-slate">
+                  <li>1. Soft credit check with Array</li>
+                  <li>2. Income check with Truv</li>
+                </ol>
+              </div>
+              <Button onClick={() => setStep(2)}>Start credit step</Button>
             </div>
           ) : null}
 
           {step === 2 ? (
             <SandboxCard
-              body={SOFT_PULL_SENTENCE}
-              buttonLabel="Run soft inquiry sandbox"
+              body={`Secure connection — handled by Array. We never see your credentials. ${SOFT_PULL_SENTENCE}`}
+              buttonLabel="Connect to Array sandbox"
               disabled={isBusy}
               onClick={() => void runCreditSandbox()}
               title="Array credit sandbox"
@@ -195,8 +200,8 @@ export function VerificationFlow({ listing }: VerificationFlowProps) {
 
           {step === 3 ? (
             <SandboxCard
-              body={HPPA_OPTIN_TEXT}
-              buttonLabel="Verify income sandbox"
+              body={`Secure connection — handled by Truv. We never see your credentials. ${HPPA_OPTIN_TEXT}`}
+              buttonLabel="Connect to Truv sandbox"
               disabled={isBusy}
               onClick={() => void runIncomeSandbox()}
               title="Truv income sandbox"
@@ -220,7 +225,7 @@ export function VerificationFlow({ listing }: VerificationFlowProps) {
                 disabled={!preview || isBusy}
                 onClick={() => void scheduleAuction()}
               >
-                Schedule my Bid Room
+                Open my auction now
               </Button>
             </div>
           ) : null}
@@ -253,9 +258,7 @@ export function VerificationFlow({ listing }: VerificationFlowProps) {
           ) : null}
 
           {step < 5 ? (
-            <p className="mt-5 text-xs text-slate">
-              Resume link saved: <span className="vr-data">/app/verify</span>
-            </p>
+            <span className="sr-only">Resume link saved: /app/verify</span>
           ) : null}
         </WizardShell>
       </div>
@@ -277,8 +280,8 @@ function SandboxCard({
   title: string;
 }) {
   return (
-    <div className="grid gap-4 rounded-ui border border-line bg-paper p-4">
-      <h2 className="font-display text-2xl font-semibold text-ink">{title}</h2>
+    <div className="grid gap-4 rounded-card border border-line bg-paper p-4">
+      <h2 className="font-sans text-2xl font-semibold text-ink">{title}</h2>
       <p className="text-sm leading-6 text-slate">{body}</p>
       <Button disabled={disabled} onClick={onClick}>
         {buttonLabel}

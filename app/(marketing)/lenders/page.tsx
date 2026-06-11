@@ -1,6 +1,7 @@
 import { FaqAccordion } from "@/components/faq-accordion";
 import { FoundingLenderWizard } from "@/components/founding-lender-wizard";
 import { SectionHead } from "@/components/section-head";
+import { Button } from "@/components/ui/button";
 import { lenderFaqItems } from "@/lib/marketing/data";
 
 export default function LendersPage() {
@@ -10,13 +11,21 @@ export default function LendersPage() {
         <div className="vr-frame grid gap-10 py-14 md:grid-cols-[1.08fr_0.92fr] md:items-center md:py-20">
           <div>
             <h1 className="font-display text-5xl font-semibold leading-tight md:text-6xl">
-              Predictable marketplace credits for verified borrower demand.
+              Stop buying leads. Start winning borrowers.
             </h1>
             <p className="mt-6 max-w-2xl text-lg leading-8 text-on-ink-dim">
-              Bid on verified borrowers — soft-pull credit band and verified
-              income before you spend a credit. Flat pricing, never a success
-              fee. Every connection carries timestamped, named consent.
+              Verified, consented borrowers. Exclusive introductions and
+              firm-bid auctions — at a fraction of your current cost per funded
+              loan.
             </p>
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-on-ink-dim">
+              Flat pricing. Never a success fee.
+            </p>
+            <div className="mt-8">
+              <Button href="#founding-lender" size="lg">
+                Apply for a Founding Lender seat
+              </Button>
+            </div>
           </div>
           <CostComparison />
         </div>
@@ -60,7 +69,7 @@ export default function LendersPage() {
         </div>
       </section>
 
-      <section className="vr-section bg-bone">
+      <section className="vr-section bg-bone" id="founding-lender">
         <div className="vr-frame grid gap-10 lg:grid-cols-[0.78fr_1.22fr] lg:items-start">
           <div>
             <SectionHead
@@ -90,9 +99,9 @@ function CostComparison() {
         Example marketplace spend
       </p>
       {[
-        ["Legacy paid channels", "$3,000", "62%"],
-        ["Aggregator channels", "$1,400", "34%"],
-        ["VieRates", "~$300", "12%"],
+        ["Shared internet leads", "[STAT]", "68%"],
+        ["VieRates auction", "[STAT]", "28%"],
+        ["VieRates connection", "[STAT]", "16%"],
       ].map(([label, value, width]) => (
         <div className="mb-5" key={label}>
           <div className="mb-2 flex items-center justify-between gap-4">
@@ -100,7 +109,9 @@ function CostComparison() {
             <span
               className={[
                 "vr-data text-base font-semibold",
-                label === "VieRates" ? "text-funded" : "text-on-ink-dim",
+                label.startsWith("VieRates")
+                  ? "text-funded"
+                  : "text-on-ink-dim",
               ].join(" ")}
             >
               {value}
@@ -110,7 +121,7 @@ function CostComparison() {
             <div
               className={[
                 "h-full rounded-full",
-                label === "VieRates" ? "bg-funded" : "bg-slate",
+                label.startsWith("VieRates") ? "bg-funded" : "bg-slate",
               ].join(" ")}
               style={{ width }}
             />
@@ -118,7 +129,8 @@ function CostComparison() {
         </div>
       ))}
       <p className="text-xs leading-5 text-on-ink-dim">
-        Example figures shown. Replace with real platform data. [STAT]
+        Here&apos;s the math: replace [STAT] values with approved cost
+        assumptions before paid acquisition.
       </p>
     </div>
   );

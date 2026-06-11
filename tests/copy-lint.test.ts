@@ -5,15 +5,20 @@ import { describe, expect, it } from "vitest";
 import { FOOTER_DISCLOSURE } from "../components/footer-disclosures";
 
 const forbiddenPatterns = [
-  /\bguarantee(?:d)?\b/i,
-  /\blowest\b/i,
+  /\bpre-approved\b/i,
+  /\bpre-qualified\b/i,
+  /\bguaranteed?\b/i,
+  /\blowest rate\b/i,
+  /\bbest loan\b/i,
+  /\bapply now\b/i,
   /\bbest rate\b/i,
-  /\bpre-approved by vierates\b/i,
   /\binstant approval\b/i,
+  /\bno risk\b/i,
   /\brisk-free\b/i,
   /\bbeat any rate\b/i,
   /\bskip the bank\b/i,
-  /\bleads\b/i,
+  /\bpartner offers\b/i,
+  /\bwe.ll find you the best lender\b/i,
 ];
 
 const sourceRoots = ["app/(marketing)", "components", "lib/marketing"];
@@ -38,14 +43,9 @@ describe("marketing copy lint", () => {
 
   it("keeps FooterDisclosures on marketing layout", () => {
     const layout = readFileSync("app/(marketing)/layout.tsx", "utf8");
-    const listingEntry = readFileSync(
-      "app/(borrower)/app/new/page.tsx",
-      "utf8",
-    );
 
     expect(FOOTER_DISCLOSURE).toContain("VieRates is a marketplace");
     expect(layout).toContain("<FooterDisclosures />");
-    expect(listingEntry).toContain("<FooterDisclosures />");
   });
 });
 

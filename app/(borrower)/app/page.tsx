@@ -18,6 +18,7 @@ export default async function BorrowerDashboardPage() {
               bestAprBp: dashboard.listing.auction.bestAprBp,
               bidCount: dashboard.listing.auction.bidCount,
               closesAt: dashboard.listing.auction.closesAt.toISOString(),
+              id: dashboard.listing.auction.id,
               status: dashboard.listing.auction.status,
             }
           : null,

@@ -8,13 +8,14 @@ const isProtectedRoute = createRouteMatcher([
   "/lender(.*)",
   "/admin(.*)",
 ]);
+const isPublicListingRoute = createRouteMatcher(["/app/new(.*)"]);
 
 function e2eMiddleware() {
   return applySecurityHeaders(NextResponse.next());
 }
 
 function publicOnlyMiddleware(request: NextRequest) {
-  if (isProtectedRoute(request)) {
+  if (isProtectedRoute(request) && !isPublicListingRoute(request)) {
     return applySecurityHeaders(
       NextResponse.json(
         { error: "Authentication is not configured." },
@@ -32,7 +33,7 @@ const middleware = e2eRuntimeAllowed()
     ? clerkMiddleware(async (auth, request) => {
         const response = NextResponse.next();
 
-        if (isProtectedRoute(request)) {
+        if (isProtectedRoute(request) && !isPublicListingRoute(request)) {
           await auth.protect();
         }
 

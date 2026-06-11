@@ -1,8 +1,6 @@
 import { StateStatus } from "@prisma/client";
 
 import { ListingWizard } from "@/components/borrower/listing-wizard";
-import { FooterDisclosures } from "@/components/footer-disclosures";
-import { NavBar } from "@/components/nav-bar";
 import { SectionHead } from "@/components/section-head";
 import { WaitlistForm } from "@/components/waitlist-form";
 import { prisma } from "@/lib/prisma";
@@ -27,23 +25,16 @@ export default async function NewListingPage({
     : null;
 
   return (
-    <>
-      <NavBar />
-      <main className="vr-section bg-bone">
-        <div className="vr-frame max-w-3xl">
-          {!state || stateRule?.status === StateStatus.GREEN ? (
-            <ListingWizard
-              initialResumeToken={rawResume}
-              initialState={state}
-            />
-          ) : null}
-          {state && stateRule?.status !== StateStatus.GREEN ? (
-            <GatedState state={state} />
-          ) : null}
+    <main className="min-h-screen bg-bone px-5 py-6 md:px-8 md:py-10">
+      {!state || stateRule?.status === StateStatus.GREEN ? (
+        <ListingWizard initialResumeToken={rawResume} initialState={state} />
+      ) : null}
+      {state && stateRule?.status !== StateStatus.GREEN ? (
+        <div className="mx-auto max-w-[480px]">
+          <GatedState state={state} />
         </div>
-      </main>
-      <FooterDisclosures />
-    </>
+      ) : null}
+    </main>
   );
 }
 

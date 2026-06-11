@@ -15,7 +15,7 @@ export function EmptyState({
 }: EmptyStateProps) {
   return (
     <div className="vr-card px-6 py-8 text-center">
-      <h2 className="font-display text-2xl font-semibold text-ink">{title}</h2>
+      <h2 className="font-sans text-2xl font-semibold text-ink">{title}</h2>
       <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-slate">
         {body}
       </p>

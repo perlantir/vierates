@@ -84,7 +84,7 @@ export function LenderDirectory({ lenders, listing }: LenderDirectoryProps) {
         <div className="vr-frame">
           <EmptyState
             actionHref="/app/new"
-            actionLabel="Start my free listing"
+            actionLabel="Start my listing"
             body="Create a listing before requesting lender introductions."
             title="No listing yet"
           />
@@ -166,7 +166,7 @@ export function LenderDirectory({ lenders, listing }: LenderDirectoryProps) {
     <main className="vr-section min-h-screen bg-bone">
       <div className="vr-frame grid gap-6">
         <header className="border-b border-line pb-6">
-          <h1 className="font-display text-4xl font-semibold leading-tight text-ink md:text-5xl">
+          <h1 className="font-sans text-4xl font-semibold leading-tight text-ink md:text-5xl">
             Lender directory
           </h1>
           <p className="mt-3 max-w-2xl text-slate">
@@ -178,7 +178,7 @@ export function LenderDirectory({ lenders, listing }: LenderDirectoryProps) {
         {activeConnection ? (
           <section className="vr-card flex flex-col justify-between gap-4 border-funded p-5 md:flex-row md:items-center">
             <div>
-              <h2 className="font-display text-2xl font-semibold text-ink">
+              <h2 className="font-sans text-2xl font-semibold text-ink">
                 Active introduction
               </h2>
               <p className="mt-2 text-sm text-slate">
@@ -264,7 +264,7 @@ export function LenderDirectory({ lenders, listing }: LenderDirectoryProps) {
             data-testid="connect-consent"
           >
             <div>
-              <h2 className="font-display text-2xl font-semibold text-ink">
+              <h2 className="font-sans text-2xl font-semibold text-ink">
                 Confirm introduction
               </h2>
               <p className="mt-2 text-sm leading-6 text-slate">
@@ -282,13 +282,13 @@ export function LenderDirectory({ lenders, listing }: LenderDirectoryProps) {
               disabled={!consentHash || isBusy}
               onClick={() => void requestConnection()}
             >
-              Send introduction
+              Request introduction
             </Button>
           </section>
         ) : null}
 
         <section className="vr-card p-5">
-          <h2 className="font-display text-2xl font-semibold text-ink">
+          <h2 className="font-sans text-2xl font-semibold text-ink">
             Timeline
           </h2>
           <ol className="mt-5 grid gap-3">

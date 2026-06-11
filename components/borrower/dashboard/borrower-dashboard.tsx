@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-import { RateDisplay } from "@/components/rate-display";
+import { TwoDoors } from "@/components/borrower/two-doors";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 
@@ -11,6 +11,7 @@ export type BorrowerDashboardListing = {
     bestAprBp?: number | null;
     bidCount: number;
     closesAt: string;
+    id: string;
     status: string;
   } | null;
   connections: {
@@ -53,7 +54,7 @@ export function BorrowerDashboard({ listing }: BorrowerDashboardProps) {
         <div className="vr-frame">
           <EmptyState
             actionHref="/app/new"
-            actionLabel="Start my free listing"
+            actionLabel="Start my listing"
             body="Create an anonymous profile before lenders see anything."
             title="No active listing"
           />
@@ -115,7 +116,7 @@ export function BorrowerDashboard({ listing }: BorrowerDashboardProps) {
       <div className="vr-frame grid gap-6">
         <header className="flex flex-col justify-between gap-4 border-b border-line pb-6 md:flex-row md:items-end">
           <div>
-            <h1 className="font-display text-4xl font-semibold leading-tight text-ink md:text-5xl">
+            <h1 className="font-sans text-4xl font-semibold leading-tight text-ink md:text-5xl">
               Borrower dashboard
             </h1>
             <p className="mt-3 max-w-2xl text-slate">
@@ -131,7 +132,7 @@ export function BorrowerDashboard({ listing }: BorrowerDashboardProps) {
           <article className="vr-card p-5">
             <div className="flex flex-col justify-between gap-4 border-b border-line pb-4 md:flex-row md:items-start">
               <div>
-                <h2 className="font-display text-2xl font-semibold text-ink">
+                <h2 className="font-sans text-2xl font-semibold text-ink">
                   Listing status
                 </h2>
                 <p className="mt-2 text-sm leading-6 text-slate">
@@ -157,31 +158,11 @@ export function BorrowerDashboard({ listing }: BorrowerDashboardProps) {
             </dl>
           </article>
 
-          <article className="vr-card p-5">
-            <h2 className="font-display text-2xl font-semibold text-ink">
-              Market context
-            </h2>
-            <p className="mt-2 text-sm leading-6 text-slate">
-              Example development data is shown until live weekly aggregates are
-              available for your band.
-            </p>
-            <div className="mt-5">
-              <RateDisplay
-                apr="6.21%-6.72%"
-                asOfDate="June 10, 2026"
-                assumptions={`${currency(listing.loanAmount)} loan, ${listing.ltvBand}% LTV, ${humanize(listing.creditBandStated)} stated credit band, 45-day lock. Example development data.`}
-                rate="6.00%-6.50%"
-              />
-            </div>
-          </article>
-        </section>
-
-        <section className="grid gap-4 lg:grid-cols-[0.9fr_1.1fr]">
-          <article className="vr-card p-5">
-            <h2 className="font-display text-2xl font-semibold text-ink">
-              Bid Room
-            </h2>
-            {listing.auction ? (
+          {listing.auction ? (
+            <article className="vr-card p-5">
+              <h2 className="font-sans text-2xl font-semibold text-ink">
+                Bid Room
+              </h2>
               <div className="mt-4 grid gap-3">
                 <p className="text-sm text-slate">
                   Auction {humanize(listing.auction.status)} · closes{" "}
@@ -189,24 +170,29 @@ export function BorrowerDashboard({ listing }: BorrowerDashboardProps) {
                     {new Date(listing.auction.closesAt).toLocaleString()}
                   </span>
                 </p>
-                <p className="font-display text-4xl font-semibold text-paddle">
+                <p className="font-mono text-4xl font-semibold text-paddle">
                   {listing.auction.bidCount}
                 </p>
                 <p className="text-sm text-slate">bids received</p>
+                <div>
+                  <Button href={`/app/auction/${listing.auction.id}`}>
+                    Compare bids
+                  </Button>
+                </div>
               </div>
-            ) : (
-              <div className="mt-4 grid gap-4">
-                <p className="text-sm leading-6 text-slate">
-                  Verify once to open the Bid Room. Lenders see your masked
-                  profile, not your name or contact details.
-                </p>
-                <Button href="/app/verify">Open my Bid Room</Button>
-              </div>
-            )}
-          </article>
+            </article>
+          ) : (
+            <TwoDoors
+              assumptions={`${currency(listing.loanAmount)} loan, ${listing.ltvBand}% LTV, ${humanize(listing.creditBandStated)} stated credit band, 45-day lock. Example development data.`}
+              highApr="6.72"
+              lowApr="6.21"
+            />
+          )}
+        </section>
 
+        <section className="grid gap-4 lg:grid-cols-[0.9fr_1.1fr]">
           <article className="vr-card p-5">
-            <h2 className="font-display text-2xl font-semibold text-ink">
+            <h2 className="font-sans text-2xl font-semibold text-ink">
               Connect activity
             </h2>
             <ol className="mt-5 grid gap-3">
@@ -237,7 +223,7 @@ export function BorrowerDashboard({ listing }: BorrowerDashboardProps) {
 
         <section className="grid gap-4 lg:grid-cols-2">
           <article className="vr-card p-5">
-            <h2 className="font-display text-2xl font-semibold text-ink">
+            <h2 className="font-sans text-2xl font-semibold text-ink">
               Rate watch
             </h2>
             <label className="mt-4 flex min-h-11 items-center justify-between gap-4 rounded-ui border border-line bg-paper p-3">
@@ -255,7 +241,7 @@ export function BorrowerDashboard({ listing }: BorrowerDashboardProps) {
           </article>
 
           <article className="vr-card border-signal p-5">
-            <h2 className="font-display text-2xl font-semibold text-ink">
+            <h2 className="font-sans text-2xl font-semibold text-ink">
               Delete listing and data
             </h2>
             <p className="mt-2 text-sm leading-6 text-slate">

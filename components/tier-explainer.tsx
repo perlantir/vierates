@@ -20,8 +20,8 @@ export function TierExplainer() {
         cta="Open my Bid Room"
         href="/app/new"
         points={[
-          "Checking your bids uses a soft inquiry and will not affect your credit score.",
-          "Firm bids, not teaser quotes",
+          "Soft credit check only — no score impact",
+          "Firm bids, not teaser numbers",
           "Lenders bid against each other for 48 hours",
         ]}
         title="The Bid Room"

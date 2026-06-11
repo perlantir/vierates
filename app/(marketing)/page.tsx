@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import { FaqAccordion } from "@/components/faq-accordion";
 import { LiveBidLedger } from "@/components/live-bid-ledger";
 import { SectionHead } from "@/components/section-head";
@@ -8,56 +10,44 @@ import {
   exampleBidFeed,
   exampleBids,
   homeFaqItems,
-  SOFT_PULL_SENTENCE,
 } from "@/lib/marketing/data";
 
 export default function HomePage() {
   return (
     <main>
-      <section className="vr-ruled border-b border-ink">
-        <div className="vr-frame grid gap-10 py-12 md:grid-cols-[1.02fr_0.98fr] md:py-16">
+      <section className="vr-ruled border-b border-line">
+        <div className="vr-frame grid gap-10 py-12 md:grid-cols-[1.02fr_0.98fr] md:items-center md:py-16 lg:py-20">
           <div className="flex flex-col justify-center">
-            <h1 className="max-w-3xl font-display text-5xl font-semibold leading-tight text-ink md:text-6xl">
-              Lenders bid. You choose. Your name stays hidden until you do.
+            <h1 className="max-w-3xl font-display text-4xl font-semibold leading-[1.12] text-ink md:text-[52px] md:leading-[58px]">
+              Lenders compete. You stay anonymous. You choose.
             </h1>
             <p className="mt-6 max-w-2xl text-lg leading-8 text-ink-90">
-              List your loan anonymously and watch verified lenders compete with
-              firm bids for 48 hours. Free for borrowers. {SOFT_PULL_SENTENCE}
+              List your loan in 60 seconds — free, no spam calls, no credit hit.
+              Verified borrowers get firm bids from licensed lenders in a
+              48-hour auction.
             </p>
-            <div className="mt-8 flex flex-wrap gap-3">
+            <div className="mt-8 flex flex-wrap items-center gap-5">
               <Button href="/app/new" size="lg">
-                Start my free listing
+                Start my listing
               </Button>
-              <Button href="/bid-index" size="lg" variant="secondary">
-                See this week&apos;s bids
-              </Button>
+              <Link
+                className="text-base font-semibold text-ink no-underline underline-offset-4 hover:underline"
+                href="/how-it-works"
+              >
+                See how it works
+              </Link>
             </div>
           </div>
           <div className="flex flex-col justify-center">
-            <div className="overflow-hidden rounded-lg border border-ink bg-paper shadow-[var(--shadow-2)]">
-              <div className="flex items-center justify-between gap-4 border-b border-ink-line bg-ink px-4 py-3">
-                <div className="flex items-center gap-2">
-                  <span className="h-2 w-2 rounded-full bg-funded shadow-[0_0_0_3px_rgba(23,126,99,0.22)]" />
-                  <span className="vr-data text-xs font-semibold text-on-ink">
-                    VIERATES · LIVE
-                  </span>
-                </div>
-                <span className="vr-data text-xs text-on-ink-dim">
-                  ANON #4471
-                </span>
-              </div>
-              <LiveBidLedger
-                bids={exampleBids}
-                feed={exampleBidFeed}
-                interval={2600}
-                live
-                title="$450K · 30-yr fixed · 75% LTV"
-                windowLabel="41:12:08 left"
-              />
-            </div>
-            <p className="mt-3 text-right text-xs leading-5 text-slate">
-              Demo data. Bids shown with APR and assumptions.
-            </p>
+            <LiveBidLedger
+              bids={exampleBids}
+              feed={exampleBidFeed}
+              interval={2600}
+              live
+              surface="dark"
+              title="Example bids"
+              windowLabel="41:12:08 left"
+            />
           </div>
         </div>
       </section>
@@ -80,12 +70,12 @@ export default function HomePage() {
               [
                 "01",
                 "List anonymously",
-                "Share the numbers lenders need. Your name, phone, and street address stay hidden.",
+                "Share the numbers lenders need in about 60 seconds. Your name, phone, and street address stay hidden.",
               ],
               [
                 "02",
                 "Open your Bid Room",
-                "Verify once. Lenders place firm bids against the same profile for 48 hours.",
+                "Verify once. Lenders compete with firm bids against the same profile for 48 hours.",
               ],
               [
                 "03",
@@ -128,9 +118,9 @@ export default function HomePage() {
             <div className="grid md:grid-cols-2">
               <ComparisonColumn
                 items={[
-                  "Your form is sold to 4 or 5 lenders",
+                  "Your number is shared with multiple lenders",
                   "Relentless calls",
-                  "Teaser quotes that change later",
+                  "Advertised rates that change later",
                   "You become the product",
                 ]}
                 title="The old way"
@@ -183,7 +173,7 @@ export default function HomePage() {
             </p>
           </div>
           <Button href="/app/new" size="lg">
-            Start my free listing
+            Start my listing
           </Button>
         </div>
       </section>
@@ -226,7 +216,7 @@ function BidIndexTeaser() {
     .join(" ");
 
   return (
-    <div className="rounded-ui border border-line bg-bone p-5">
+    <div className="rounded-card border border-line bg-paper p-5">
       <div className="mb-4 flex items-center justify-between gap-4">
         <p className="font-semibold text-ink">Median bid APR by credit band</p>
         <p className="vr-data text-xs text-slate">Updated weekly · Demo</p>
@@ -248,8 +238,11 @@ function BidIndexTeaser() {
             y2={y}
           />
         ))}
-        <path d={line} fill="none" stroke="var(--ink)" strokeWidth="2.4" />
-        <circle cx="100" cy="22" fill="var(--paddle)" r="2.7" />
+        <path
+          d="M 0 90 L 0 68 L 22 46 L 44 37 L 66 24 L 88 17 L 100 10 L 100 34 L 88 41 L 66 48 L 44 61 L 22 70 L 0 92 Z"
+          fill="var(--paddle-tint)"
+        />
+        <path d={line} fill="none" stroke="var(--ink-700)" strokeWidth="2.4" />
       </svg>
     </div>
   );

@@ -25,9 +25,12 @@ export function RateDisplay({
 
   return (
     <figure className="vr-data">
-      <div className="flex items-baseline justify-between gap-4">
-        <span className="text-2xl font-semibold">{rate}</span>
-        <span className="text-sm text-slate">APR {apr}</span>
+      <div className="grid gap-1">
+        <span className="text-xs font-semibold text-slate">APR</span>
+        <span className="text-4xl font-medium leading-none text-ink md:text-[44px] md:leading-[48px]">
+          {apr}
+        </span>
+        <span className="text-sm text-slate">note rate {rate}</span>
       </div>
       <figcaption className="mt-2 text-xs leading-5 text-slate">
         As of {asOfDate}. {assumptions}

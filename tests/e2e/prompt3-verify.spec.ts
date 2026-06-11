@@ -71,15 +71,15 @@ test("borrower verifies profile and schedules a Bid Room", async ({ page }) => {
   await page.goto("/app/verify");
   await expect(
     page.getByText(
-      "Checking your bids uses a soft inquiry and will not affect your credit score.",
+      "Opening your Bid Room uses a soft credit check, which does not affect your credit score.",
     ),
   ).toBeVisible();
-  await page.getByRole("button", { name: "Continue" }).click();
-  await page.getByRole("button", { name: "Run soft inquiry sandbox" }).click();
-  await page.getByRole("button", { name: "Verify income sandbox" }).click();
+  await page.getByRole("button", { name: "Start credit step" }).click();
+  await page.getByRole("button", { name: "Connect to Array sandbox" }).click();
+  await page.getByRole("button", { name: "Connect to Truv sandbox" }).click();
   await expect(page.getByTestId("masked-preview")).toBeVisible();
   await expect(page.getByText("Hidden until you pick.")).toBeVisible();
-  await page.getByRole("button", { name: "Schedule my Bid Room" }).click();
+  await page.getByRole("button", { name: "Open my auction now" }).click();
   await expect(page.getByTestId("verify-done")).toBeVisible();
 
   const refreshedListing = await prisma.listing.findUnique({

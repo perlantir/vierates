@@ -3,7 +3,7 @@ export function consentTextForParty(partyName: string) {
 }
 
 export const SOFT_PULL_SENTENCE =
-  "Checking your bids uses a soft inquiry and will not affect your credit score.";
+  "Opening your Bid Room uses a soft credit check, which does not affect your credit score. You're giving written permission for this check. Your name and contact details are never shared with any lender unless you choose them.";
 
 export const HPPA_OPTIN_TEXT =
   "I authorize VieRates to use my verified income and employment details to prepare my anonymous Bid Room profile.";

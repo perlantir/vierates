@@ -78,7 +78,10 @@ test("borrower requests and closes a lender introduction", async ({ page }) => {
     .click();
   await expect(page.getByTestId("connect-consent")).toBeVisible();
   await page.getByRole("checkbox").check();
-  await page.getByRole("button", { name: "Send introduction" }).click();
+  await page
+    .getByRole("button", { name: "Request introduction" })
+    .last()
+    .click();
 
   await expect(page.getByText("Introduction delivered.")).toBeVisible();
   await expect(

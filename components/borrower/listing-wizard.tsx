@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-import { RateDisplay } from "@/components/rate-display";
+import { TwoDoors } from "@/components/borrower/two-doors";
 import { Button } from "@/components/ui/button";
 import { Chip } from "@/components/ui/chip";
 import { Slider } from "@/components/ui/slider";
@@ -99,8 +99,8 @@ export function ListingWizard({
 }: ListingWizardProps) {
   const [step, setStep] = useState(1);
   const [data, setData] = useState<WizardData>(() => ({
-    balanceAmount: 320_000,
-    estValueAmount: 500_000,
+    balanceAmount: 255_000,
+    estValueAmount: 412_000,
     state: initialState,
   }));
   const [sessionId, setSessionId] = useState("");
@@ -109,6 +109,7 @@ export function ListingWizard({
   const [message, setMessage] = useState<string>();
   const [isBusy, setIsBusy] = useState(false);
   const [code, setCode] = useState("");
+  const [smsConsentAccepted, setSmsConsentAccepted] = useState(false);
   const [listingResult, setListingResult] = useState<ListingResult>();
   const [gatedState, setGatedState] = useState<string>();
 
@@ -310,7 +311,9 @@ export function ListingWizard({
       const verification = (await verifyResponse.json()) as { error?: string };
 
       if (!verifyResponse.ok) {
-        setMessage(verification.error ?? "Code did not match.");
+        setMessage(
+          verification.error ?? "That code didn't match — try the newest text.",
+        );
         return;
       }
 
@@ -354,7 +357,7 @@ export function ListingWizard({
   if (gatedState) {
     return (
       <div className="vr-card p-6" data-testid="gated-state">
-        <h1 className="font-display text-3xl font-semibold text-ink">
+        <h1 className="font-sans text-3xl font-semibold text-ink">
           VieRates isn&apos;t live in {gatedState} yet.
         </h1>
         <p className="mt-3 text-slate">
@@ -371,7 +374,7 @@ export function ListingWizard({
   return (
     <WizardShell
       currentStep={step}
-      footnote="Anonymous - we never sell your info"
+      footnote="🔒 Anonymous — we never sell your info"
       onBack={
         step > 1 && step < 12 ? () => setStep((value) => value - 1) : undefined
       }
@@ -395,7 +398,7 @@ export function ListingWizard({
             Street address
             <input
               autoComplete="street-address"
-              className="min-h-11 rounded-ui border border-line bg-paper px-3 text-base font-normal"
+              className="min-h-14 rounded-ui border border-line bg-paper px-3 text-base font-normal"
               onChange={(event) =>
                 setData((current) => ({
                   ...current,
@@ -406,10 +409,14 @@ export function ListingWizard({
               value={data.address ?? ""}
             />
           </label>
+          <p className="text-sm leading-6 text-slate">
+            Checked against public records, then sealed. Lenders never see your
+            street address.
+          </p>
           <label className="grid gap-2 text-sm font-semibold text-ink">
             State
             <select
-              className="min-h-11 rounded-ui border border-line bg-paper px-3 text-base font-normal"
+              className="min-h-14 rounded-ui border border-line bg-paper px-3 text-base font-normal"
               onChange={(event) =>
                 setData((current) => ({
                   ...current,
@@ -466,9 +473,9 @@ export function ListingWizard({
           <p className="text-sm text-slate">
             We estimate{" "}
             <span className="vr-data font-semibold text-ink">
-              ${(data.estValueAmount ?? 500_000).toLocaleString()}
+              ${(data.estValueAmount ?? 412_000).toLocaleString()}
             </span>{" "}
-            - sound right?
+            — sound right?
           </p>
           <Slider
             label="Estimated value"
@@ -482,10 +489,10 @@ export function ListingWizard({
           />
           <Button
             onClick={() =>
-              choose("estValueAmount", data.estValueAmount ?? 500_000)
+              choose("estValueAmount", data.estValueAmount ?? 412_000)
             }
           >
-            Next
+            Save estimated value
           </Button>
         </div>
       ) : null}
@@ -503,15 +510,15 @@ export function ListingWizard({
             value={data.balanceAmount ?? 320_000}
           />
           <p className="text-sm text-slate">
-            About <span className="vr-data font-semibold text-ink">{ltv}%</span>{" "}
-            of your home&apos;s value.
+            ≈ <span className="vr-data font-semibold text-ink">{ltv}%</span> of
+            your home&apos;s value
           </p>
           <Button
             onClick={() =>
               choose("balanceAmount", data.balanceAmount ?? 320_000)
             }
           >
-            Next
+            Save loan balance
           </Button>
         </div>
       ) : null}
@@ -534,7 +541,7 @@ export function ListingWizard({
             selected={data.creditBandStated}
           />
           <p className="text-sm text-slate">
-            Just your best guess - no credit check here.
+            Just your best guess — no credit check here.
           </p>
         </div>
       ) : null}
@@ -562,14 +569,11 @@ export function ListingWizard({
           <p className="text-sm text-slate">
             We&apos;ll text one code. We never sell your number.
           </p>
-          <p className="rounded-ui border border-line bg-bone p-3 text-xs leading-5 text-slate">
-            {smsOptInText(data.phone ?? "your number")}
-          </p>
           <label className="grid gap-2 text-sm font-semibold text-ink">
             Mobile phone
             <input
               autoComplete="tel"
-              className="min-h-11 rounded-ui border border-line bg-paper px-3 text-base font-normal"
+              className="min-h-14 rounded-ui border border-line bg-paper px-3 text-base font-normal"
               onChange={(event) =>
                 setData((current) => ({
                   ...current,
@@ -579,9 +583,18 @@ export function ListingWizard({
               value={data.phone ?? ""}
             />
           </label>
+          <label className="flex items-start gap-3 rounded-ui border border-line bg-paper p-3 text-xs leading-5 text-slate">
+            <input
+              checked={smsConsentAccepted}
+              className="mt-1 h-4 w-4 accent-ink"
+              onChange={(event) => setSmsConsentAccepted(event.target.checked)}
+              type="checkbox"
+            />
+            <span>{smsOptInText(data.phone ?? "your number")}</span>
+          </label>
           <div className="flex flex-col gap-3 sm:flex-row">
             <Button
-              disabled={!data.phone || isBusy}
+              disabled={!data.phone || !smsConsentAccepted || isBusy}
               onClick={() => void sendCode()}
               variant="secondary"
             >
@@ -590,19 +603,23 @@ export function ListingWizard({
             <label className="grid flex-1 gap-2 text-sm font-semibold text-ink">
               Verification code
               <input
-                className="min-h-11 rounded-ui border border-line bg-paper px-3 text-base font-normal"
+                className="min-h-14 rounded-ui border border-line bg-paper px-3 text-center font-mono text-2xl font-medium tracking-[0.45em]"
                 inputMode="numeric"
-                onChange={(event) => setCode(event.target.value)}
+                maxLength={6}
+                onChange={(event) =>
+                  setCode(event.target.value.replace(/\D/g, "").slice(0, 6))
+                }
+                placeholder="000000"
                 value={code}
               />
             </label>
           </div>
           {message ? <StatusMessage>{message}</StatusMessage> : null}
           <Button
-            disabled={!data.challengeId || code.length < 4 || isBusy}
+            disabled={!data.challengeId || code.length < 6 || isBusy}
             onClick={() => void verifyAndSubmit()}
           >
-            Verify and list me
+            Create my anonymous listing
           </Button>
         </div>
       ) : null}
@@ -612,9 +629,7 @@ export function ListingWizard({
       ) : null}
 
       {resumeUrl && step < 12 ? (
-        <p className="mt-5 text-xs text-slate">
-          Resume link saved: <span className="vr-data">{resumeUrl}</span>
-        </p>
+        <span className="sr-only">Resume link saved: {resumeUrl}</span>
       ) : null}
     </WizardShell>
   );
@@ -672,29 +687,12 @@ function DoneScreen({
 }) {
   return (
     <div className="grid gap-6" data-testid="listing-done">
-      <div>
-        <p className="text-sm font-semibold text-funded">
-          {listingResult?.manualReview
-            ? "Your listing is in manual review."
-            : "You are listed. Here is your market."}
+      {listingResult?.manualReview ? (
+        <p className="rounded-ui border border-info bg-info-tint p-3 text-sm font-semibold text-info">
+          Your listing is in manual review.
         </p>
-        <p className="mt-2 text-sm leading-6 text-slate">
-          Checking your bids uses a soft inquiry and will not affect your credit
-          score.
-        </p>
-      </div>
-      <RateDisplay
-        apr="6.21%-6.72%"
-        asOfDate="June 10, 2026"
-        assumptions="$500,000 estimated value, 60-70% LTV, stated credit band, 45-day lock. Example development data."
-        rate="6.00%-6.50%"
-      />
-      <div className="grid gap-3 sm:grid-cols-2">
-        <Button href="/app/lenders" variant="secondary">
-          Browse Connect
-        </Button>
-        <Button href="/app/verify">Open my Bid Room</Button>
-      </div>
+      ) : null}
+      <TwoDoors />
       {resumeUrl ? (
         <p className="text-xs text-slate">
           Resume link kept for your records:{" "}
@@ -744,7 +742,7 @@ function titleForStep(step: number): string {
     "How's your credit?",
     "Household income, before taxes?",
     "When do you want to move?",
-    "Last step - prove you're human.",
+    "Last step — prove you're human.",
     "You're listed. Here's your market.",
   ];
 
@@ -755,7 +753,7 @@ function whyForStep(step: number): string | undefined {
   const reasons: Record<number, string> = {
     2: "State, county, and a property match help lenders bid on the right profile. We discard the street address from marketplace storage.",
     6: "Loan-to-value helps lenders decide whether your profile fits their coverage box.",
-    8: "A stated band helps place your listing before verification. The Bid Room verifies later with a soft inquiry.",
+    8: "A stated band helps place your listing before verification. The Bid Room verifies later with a soft credit check.",
     11: "The code reduces spam listings and keeps one active listing per phone.",
   };
 

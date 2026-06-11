@@ -16,7 +16,7 @@ export default function HowItWorksPage() {
               [
                 "1",
                 "List anonymously",
-                "Tell us the property state, loan purpose, rough value, loan amount, and timing. We match the property, then discard the street address from marketplace-visible storage.",
+                "Tell us the property state, loan purpose, rough value, loan amount, and timing. Checked against public records, then sealed. Lenders never see your street address.",
               ],
               [
                 "2",
@@ -26,7 +26,7 @@ export default function HowItWorksPage() {
               [
                 "3",
                 "Pick your winner",
-                "You compare bids side by side. Only the lender you pick receives your name and contact info, with your logged consent.",
+                "You compare bids side by side. Your identity goes to that lender only. The other lenders never learn who you were.",
               ],
             ].map(([number, title, body]) => (
               <article
@@ -62,7 +62,7 @@ export default function HowItWorksPage() {
             <p className="mt-3 text-on-ink-dim">{SOFT_PULL_SENTENCE}</p>
           </div>
           <Button href="/app/new" size="lg">
-            Start my free listing
+            Start my listing
           </Button>
         </div>
       </section>
@@ -77,7 +77,7 @@ function AnonymityDiagram() {
         {["Name", "Phone", "Street address"].map((label) => (
           <p className="flex items-center justify-between gap-4" key={label}>
             <span>{label}</span>
-            <span className="h-2 w-28 rounded-sm bg-signal" />
+            <span className="vr-redaction" />
           </p>
         ))}
       </ProfileCard>

@@ -23,6 +23,9 @@ describe("security: borrower identity vault", () => {
       lastName: "Borrower",
       phone: `312556${suffix.slice(-4).padStart(4, "0")}`,
     };
+    await prisma.borrowerIdentity.deleteMany({
+      where: { phoneHash: borrowerPhoneHash(plaintext.phone) },
+    });
     const user = await prisma.user.create({
       data: {
         clerkId: `security-vault:${suffix}`,
@@ -73,6 +76,9 @@ describe("security: borrower identity vault", () => {
   it("deletes identity vault and OTP residue on borrower deletion", async () => {
     const suffix = `${Date.now()}${Math.random().toString(16).slice(2)}`;
     const phone = `312557${suffix.slice(-4).padStart(4, "0")}`;
+    await prisma.borrowerIdentity.deleteMany({
+      where: { phoneHash: borrowerPhoneHash(phone) },
+    });
     const user = await prisma.user.create({
       data: {
         clerkId: `security-vault-delete:${suffix}`,
