@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { RateDisplay } from "@/components/rate-display";
 import { Button } from "@/components/ui/button";
+import { captureFunnelEvent } from "@/lib/analytics/client";
 
 export type BorrowerBidRoomBid = {
   aprBp: number;
@@ -36,6 +37,27 @@ export function BorrowerBidRoom({ auction, bids }: BorrowerBidRoomProps) {
   const selectedBid = bids.find((bid) => bid.id === selectedBidId);
   const canPick = auction.status === "CLOSED" && Boolean(selectedBid);
 
+  useEffect(() => {
+    void captureFunnelEvent("bidroom_opened", "bid_room", {
+      auctionId: auction.id,
+      bidsVisible: bids.length,
+      status: auction.status,
+    });
+
+    if (bids.length > 0) {
+      void captureFunnelEvent("compare_viewed", "bid_room", {
+        auctionId: auction.id,
+        bidsVisible: bids.length,
+      });
+    }
+
+    if (auction.status === "EXPIRED") {
+      void captureFunnelEvent("pick_expired", "bid_room", {
+        auctionId: auction.id,
+      });
+    }
+  }, [auction.id, auction.status, bids.length]);
+
   async function pickBid() {
     if (!selectedBid) {
       return;
@@ -61,6 +83,14 @@ export function BorrowerBidRoom({ auction, bids }: BorrowerBidRoomProps) {
     setMessage(
       `Your identity goes to ${selectedBid.lenderName} only. The other lenders never learn who you were.`,
     );
+    void captureFunnelEvent("pick_confirmed", "bid_room", {
+      auctionId: auction.id,
+      bidId: selectedBid.id,
+    });
+    void captureFunnelEvent("reveal_completed", "bid_room", {
+      auctionId: auction.id,
+      bidId: selectedBid.id,
+    });
   }
 
   return (

@@ -1,6 +1,10 @@
+"use client";
+
+import { useEffect } from "react";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
+import { captureFunnelEvent } from "@/lib/analytics/client";
 
 type TwoDoorsProps = {
   assumptions?: string;
@@ -15,6 +19,10 @@ export function TwoDoors({
   highApr = "6.41",
   lowApr = "6.13",
 }: TwoDoorsProps) {
+  useEffect(() => {
+    void captureFunnelEvent("doors_viewed", "two_doors");
+  }, []);
+
   return (
     <section className="grid gap-5" data-testid="two-doors">
       <div>
@@ -47,7 +55,16 @@ export function TwoDoors({
           check only · no score impact · you stay anonymous.
         </p>
         <div className="mt-5">
-          <Button href="/app/verify">Open my Bid Room</Button>
+          <Button
+            href="/app/verify"
+            onClick={() =>
+              void captureFunnelEvent("door_selected", "two_doors", {
+                door: "bidroom",
+              })
+            }
+          >
+            Open my Bid Room
+          </Button>
         </div>
       </article>
 
@@ -60,7 +77,15 @@ export function TwoDoors({
           needed.
         </p>
         <div className="mt-5">
-          <Button href="/app/lenders" variant="secondary">
+          <Button
+            href="/app/lenders"
+            onClick={() =>
+              void captureFunnelEvent("door_selected", "two_doors", {
+                door: "connect",
+              })
+            }
+            variant="secondary"
+          >
             Browse lenders
           </Button>
         </div>

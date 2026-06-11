@@ -8,6 +8,7 @@ import { Chip } from "@/components/ui/chip";
 import { Slider } from "@/components/ui/slider";
 import { WizardShell } from "@/components/ui/wizard-shell";
 import { WaitlistForm } from "@/components/waitlist-form";
+import type { FunnelEventName } from "@/lib/analytics/events";
 import { borrowerSessionHeader, smsOptInText } from "@/lib/borrower/shared";
 
 const storageKey = "vierates:list";
@@ -115,7 +116,7 @@ export function ListingWizard({
 
   const captureFunnel = useCallback(
     async (
-      event: "wizard_step_viewed" | "wizard_step_completed",
+      event: FunnelEventName,
       viewedStep: string,
       metadata: Record<string, string | number | boolean | undefined> = {},
     ) => {
@@ -143,6 +144,17 @@ export function ListingWizard({
     sessionStorage.setItem(`${storageKey}:session`, existingSession);
     setSessionId(existingSession);
 
+    void fetch("/api/analytics/funnel", {
+      body: JSON.stringify({
+        event: "wizard_started",
+        metadata: { source: "listing_wizard" },
+        sessionId: existingSession,
+        step: "goal",
+      }),
+      headers: { "content-type": "application/json" },
+      method: "POST",
+    }).catch(() => undefined);
+
     localStorage.removeItem(`${storageKey}:session`);
     localStorage.removeItem(`${storageKey}:data`);
     localStorage.removeItem(`${storageKey}:current`);
@@ -169,6 +181,40 @@ export function ListingWizard({
 
     void captureFunnel("wizard_step_viewed", stepName(step));
   }, [captureFunnel, sessionId, step]);
+
+  useEffect(() => {
+    if (!sessionId || listingResult) {
+      return;
+    }
+
+    const handlePageHide = () => {
+      const payload = JSON.stringify({
+        event: "wizard_abandoned",
+        metadata: { reason: "pagehide" },
+        sessionId,
+        step: stepName(step),
+      });
+
+      if (navigator.sendBeacon) {
+        navigator.sendBeacon(
+          "/api/analytics/funnel",
+          new Blob([payload], { type: "application/json" }),
+        );
+        return;
+      }
+
+      void fetch("/api/analytics/funnel", {
+        body: payload,
+        headers: { "content-type": "application/json" },
+        keepalive: true,
+        method: "POST",
+      }).catch(() => undefined);
+    };
+
+    window.addEventListener("pagehide", handlePageHide);
+
+    return () => window.removeEventListener("pagehide", handlePageHide);
+  }, [listingResult, sessionId, step]);
 
   useEffect(() => {
     if (!sessionId) {
@@ -348,6 +394,10 @@ export function ListingWizard({
       setListingResult(listing);
       sessionStorage.removeItem(`${storageKey}:session`);
       void captureFunnel("wizard_step_completed", "phone_otp");
+      void captureFunnel("listing_published", "done", {
+        listingId: listing.id,
+        status: listing.status,
+      });
       setStep(12);
     } finally {
       setIsBusy(false);

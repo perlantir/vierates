@@ -8,6 +8,8 @@ import { sensitiveBlindIndex } from "@/lib/security/borrower-identity-vault";
 const smsStopSuffix = "Reply STOP to opt out.";
 
 type EmailMessage = {
+  html: string;
+  preheader: string;
   subject: string;
   text: string;
 };
@@ -18,10 +20,11 @@ type SmsMessage = {
 
 export const notificationTemplates = {
   borrowerConnectionDeliveredEmail(lenderName: string): EmailMessage {
-    return {
+    return brandedEmail({
+      body: `${lenderName} received your Connect request with your logged consent. Keep one introduction active at a time from your dashboard.`,
+      preheader: "Your logged-consent Connect request was delivered.",
       subject: "Your VieRates introduction was delivered",
-      text: `${lenderName} received your Connect request with your logged consent. Keep one introduction active at a time from your dashboard.`,
-    };
+    });
   },
   borrowerConnectionDeliveredSms(lenderName: string): SmsMessage {
     return {
@@ -31,28 +34,32 @@ export const notificationTemplates = {
     };
   },
   borrowerListingLiveEmail(): EmailMessage {
-    return {
+    return brandedEmail({
+      body: "Your listing is live. Lenders see your anonymous profile only. Your name and contact details stay hidden until you choose.",
+      preheader: "Your anonymous listing is live.",
       subject: "Your anonymous VieRates listing is live",
-      text: "Your listing is live. Lenders see your anonymous profile only. Your name and contact details stay hidden until you choose.",
-    };
+    });
   },
   borrowerVerificationCompleteEmail(opensAt: string): EmailMessage {
-    return {
+    return brandedEmail({
+      body: `Your Bid Room opens at ${opensAt}. Lenders see the verified masked profile you reviewed.`,
+      preheader: "Your Bid Room schedule is confirmed.",
       subject: "Your VieRates Bid Room is scheduled",
-      text: `Your Bid Room opens at ${opensAt}. Lenders see the verified masked profile you reviewed.`,
-    };
+    });
   },
   lenderConnectionDeliveredEmail(): EmailMessage {
-    return {
+    return brandedEmail({
+      body: "A borrower selected your organization for a Connect introduction. The request includes timestamped consent.",
+      preheader: "A borrower requested a logged-consent introduction.",
       subject: "New VieRates Connect introduction",
-      text: "A borrower selected your organization for a Connect introduction. The request includes timestamped consent.",
-    };
+    });
   },
   lenderNewAuctionDigestEmail(count: number): EmailMessage {
-    return {
+    return brandedEmail({
+      body: `${count} verified borrower profiles match your coverage box. Bid only when the fit is right.`,
+      preheader: `${count} verified profiles match your coverage box.`,
       subject: "New verified auctions in your coverage box",
-      text: `${count} verified borrower profiles match your coverage box. Bid only when the fit is right.`,
-    };
+    });
   },
 };
 
@@ -138,6 +145,49 @@ export function withSmsStop(message: string): string {
   return message.endsWith(smsStopSuffix)
     ? message
     : `${message} ${smsStopSuffix}`;
+}
+
+function brandedEmail(input: {
+  body: string;
+  preheader: string;
+  subject: string;
+}): EmailMessage {
+  const footer =
+    "VieRates is a marketplace, not a lender. Your identity stays sealed until you choose.";
+
+  return {
+    html: [
+      '<div style="display:none;max-height:0;overflow:hidden;color:transparent;">',
+      escapeHtml(input.preheader),
+      "</div>",
+      '<main style="background:#f8f6f0;color:#102f2a;font-family:Arial,sans-serif;padding:32px;">',
+      '<section style="max-width:560px;margin:0 auto;background:#ffffff;border:1px solid #d8d2c5;padding:28px;">',
+      '<p style="margin:0 0 24px;font-size:22px;font-weight:700;letter-spacing:0;">VieRates</p>',
+      '<div style="height:8px;width:72px;background:#d8aa2b;margin-bottom:24px;"></div>',
+      `<h1 style="font-size:24px;line-height:1.25;margin:0 0 16px;">${escapeHtml(
+        input.subject,
+      )}</h1>`,
+      `<p style="font-size:16px;line-height:1.6;margin:0 0 24px;">${escapeHtml(
+        input.body,
+      )}</p>`,
+      '<p style="border-top:1px solid #d8d2c5;color:#5f6f68;font-size:12px;line-height:1.5;margin:0;padding-top:16px;">',
+      escapeHtml(footer),
+      "</p>",
+      "</section>",
+      "</main>",
+    ].join(""),
+    preheader: input.preheader,
+    subject: input.subject,
+    text: `VieRates\n\n${input.body}\n\n${footer}`,
+  };
+}
+
+function escapeHtml(value: string): string {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;");
 }
 
 export function notificationRecipientIndex(

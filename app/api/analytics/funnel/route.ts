@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
+import {
+  allowedFunnelMetadataKeys,
+  funnelEvents,
+} from "@/lib/analytics/events";
 import { captureBorrowerFunnelEvent } from "@/lib/borrower/wizard";
 import {
   enforceRateLimit,
@@ -11,21 +15,12 @@ import { getPostHogClient } from "@/lib/observability/posthog";
 import { prisma } from "@/lib/prisma";
 
 const funnelSchema = z.object({
-  event: z.enum(["page_view", "wizard_step_viewed", "wizard_step_completed"]),
+  event: z.enum(funnelEvents),
   metadata: z.record(z.string(), z.unknown()).optional(),
   sessionId: z.string().min(8).max(128),
   step: z.string().min(1).max(80),
   userId: z.string().max(128).optional(),
 });
-
-const allowedMetadataKeys = new Set([
-  "field",
-  "gated",
-  "path",
-  "propertyMatchOk",
-  "surface",
-  "state",
-]);
 
 export async function POST(request: Request) {
   const payloadTooLarge = rejectLargePayload(request, 16_384);
@@ -91,7 +86,7 @@ function sanitizeMetadata(metadata: Record<string, unknown>) {
 
   for (const [key, value] of Object.entries(metadata)) {
     if (
-      !allowedMetadataKeys.has(key) ||
+      !allowedFunnelMetadataKeys.has(key) ||
       !["boolean", "number", "string"].includes(typeof value)
     ) {
       continue;

@@ -33,6 +33,16 @@ describe("notifications", () => {
     expect(sms.body).toMatch(/Reply STOP to opt out\.$/);
   });
 
+  it("keeps email templates branded for inbox delivery", () => {
+    const email = notificationTemplates.borrowerListingLiveEmail();
+
+    expect(email.preheader).toContain("anonymous listing");
+    expect(email.text).toContain("VieRates");
+    expect(email.text).toContain("marketplace, not a lender");
+    expect(email.html).toContain("VieRates");
+    expect(email.html).toContain("#d8aa2b");
+  });
+
   it("honors STOP before logging a demo SMS send", async () => {
     const stopResult = await honorSmsStop(prisma, {
       body: "STOP",

@@ -8,6 +8,7 @@ import {
 } from "@prisma/client";
 
 import { calculateAprBp } from "@/lib/apr";
+import { recordFunnelEvent } from "@/lib/analytics/server";
 import { createConsentRecord } from "@/lib/consent/records";
 import { BILLING_REASONS } from "@/lib/services/billing";
 import { transitionAuctionStatus } from "@/lib/services/auction/state";
@@ -65,14 +66,25 @@ export async function closeAuction(db: PrismaClient, auctionId: string) {
   });
   const status = transitionAuctionStatus(auction.status, "close");
 
-  return db.auction.update({
-    data: {
-      pickDeadline: new Date(
-        auction.closesAt.getTime() + 7 * 24 * 60 * 60 * 1000,
-      ),
-      status,
-    },
-    where: { id: auction.id },
+  return db.$transaction(async (tx) => {
+    const closed = await tx.auction.update({
+      data: {
+        pickDeadline: new Date(
+          auction.closesAt.getTime() + 7 * 24 * 60 * 60 * 1000,
+        ),
+        status,
+      },
+      where: { id: auction.id },
+    });
+
+    await recordFunnelEvent(tx, {
+      event: "auction_closed",
+      metadata: { auctionId: auction.id, status },
+      sessionId: `server:auction:${auction.id}`,
+      step: "auction_closed",
+    });
+
+    return closed;
   });
 }
 
@@ -176,6 +188,7 @@ export async function submitBid(db: PrismaClient, input: BidInput) {
     const activeBid = existingBids.find(
       (bid) => bid.status === BidStatus.ACTIVE,
     );
+    const bidAttempt = activeBid ? "improve" : "initial";
 
     if (activeBid) {
       await tx.bid.update({
@@ -245,6 +258,29 @@ export async function submitBid(db: PrismaClient, input: BidInput) {
       },
       where: { id: auction.id },
     });
+
+    await recordFunnelEvent(tx, {
+      event: activeBid ? "bid_improved" : "bid_placed",
+      metadata: {
+        auctionId: auction.id,
+        bidAttempt,
+        bidId: bid.id,
+        lenderOrgId: input.lenderOrgId,
+      },
+      sessionId: `server:lender:${input.lenderOrgId}`,
+      step: "lender_bid",
+      userId: input.lenderUserId,
+    });
+
+    if (!activeBid && activeBids.length === 1) {
+      await recordFunnelEvent(tx, {
+        event: "first_bid_received",
+        metadata: { auctionId: auction.id, bidId: bid.id },
+        sessionId: `server:auction:${auction.id}`,
+        step: "first_bid",
+        userId: auction.listing.borrowerUserId,
+      });
+    }
 
     return bid;
   });
@@ -329,6 +365,30 @@ export async function pickWinningBid(
         lenderOrgId: bid.lenderOrgId,
         listingId: bid.auction.listingId,
       },
+    });
+
+    await recordFunnelEvent(tx, {
+      event: "pick_confirmed",
+      metadata: {
+        auctionId: bid.auction.id,
+        bidId: bid.id,
+        lenderOrgId: bid.lenderOrgId,
+      },
+      sessionId: `server:auction:${bid.auction.id}`,
+      step: "pick",
+      userId: input.borrowerUserId,
+    });
+
+    await recordFunnelEvent(tx, {
+      event: "reveal_completed",
+      metadata: {
+        auctionId: bid.auction.id,
+        bidId: bid.id,
+        lenderOrgId: bid.lenderOrgId,
+      },
+      sessionId: `server:auction:${bid.auction.id}`,
+      step: "reveal",
+      userId: input.borrowerUserId,
     });
 
     return { consentRecord, identityGrant };

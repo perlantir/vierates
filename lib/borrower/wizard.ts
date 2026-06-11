@@ -9,6 +9,8 @@ import {
 } from "@prisma/client";
 import { z } from "zod";
 
+import type { FunnelEventName } from "@/lib/analytics/events";
+import { recordFunnelEvent } from "@/lib/analytics/server";
 import { smsOptInText } from "@/lib/borrower/shared";
 import { sha256 } from "@/lib/consent/records";
 import { assertTwilioStubAllowed } from "@/lib/integrations/twilio";
@@ -448,22 +450,14 @@ function readOtpChallengePhone(value: string): string {
 export async function captureBorrowerFunnelEvent(
   db: PrismaClient,
   input: {
-    event: "page_view" | "wizard_step_viewed" | "wizard_step_completed";
+    event: FunnelEventName;
     metadata?: Prisma.InputJsonValue;
     sessionId: string;
     step: string;
     userId?: string;
   },
 ) {
-  return db.funnelEvent.create({
-    data: {
-      event: input.event,
-      metadata: input.metadata ?? {},
-      sessionId: input.sessionId,
-      step: input.step,
-      userId: input.userId,
-    },
-  });
+  return recordFunnelEvent(db, input);
 }
 
 async function assertNoActiveListingForPhone(db: PrismaClient, phone: string) {

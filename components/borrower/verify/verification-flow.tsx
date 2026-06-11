@@ -6,6 +6,7 @@ import { MaskedProfilePreview } from "@/components/borrower/verify/masked-profil
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { WizardShell } from "@/components/ui/wizard-shell";
+import { captureFunnelEvent } from "@/lib/analytics/client";
 import type { MaskedProfilePreview as MaskedProfilePreviewData } from "@/lib/borrower/masked-preview";
 import { HPPA_OPTIN_TEXT, SOFT_PULL_SENTENCE } from "@/lib/consent/text";
 
@@ -73,11 +74,21 @@ export function VerificationFlow({ listing }: VerificationFlowProps) {
   }
 
   async function runCreditSandbox() {
-    await runVerificationStep("/api/borrower/verify/credit", () => setStep(3));
+    await runVerificationStep("/api/borrower/verify/credit", () => {
+      void captureFunnelEvent("verify_credit_done", "credit", {
+        listingId: listing?.id,
+      });
+      setStep(3);
+    });
   }
 
   async function runIncomeSandbox() {
-    await runVerificationStep("/api/borrower/verify/income", () => setStep(4));
+    await runVerificationStep("/api/borrower/verify/income", () => {
+      void captureFunnelEvent("verify_income_done", "income", {
+        listingId: listing?.id,
+      });
+      setStep(4);
+    });
     await loadPreview();
   }
 
@@ -132,6 +143,9 @@ export function VerificationFlow({ listing }: VerificationFlowProps) {
   async function scheduleAuction() {
     setIsBusy(true);
     setMessage(undefined);
+    void captureFunnelEvent("masked_preview_confirmed", "masked_preview", {
+      listingId: listing?.id,
+    });
 
     const response = await fetch("/api/borrower/verify/schedule", {
       body: JSON.stringify({ listingId: listing?.id }),
@@ -150,6 +164,11 @@ export function VerificationFlow({ listing }: VerificationFlowProps) {
     }
 
     setAuction(result);
+    void captureFunnelEvent("auction_scheduled", "auction_scheduled", {
+      auctionId: result.id,
+      listingId: listing?.id,
+      status: result.status,
+    });
     setStep(5);
     sessionStorage.removeItem(`${storageKey}:step`);
   }
@@ -184,7 +203,16 @@ export function VerificationFlow({ listing }: VerificationFlowProps) {
                   <li>2. Income check with Truv</li>
                 </ol>
               </div>
-              <Button onClick={() => setStep(2)}>Start credit step</Button>
+              <Button
+                onClick={() => {
+                  void captureFunnelEvent("verify_started", "credit", {
+                    listingId: listing.id,
+                  });
+                  setStep(2);
+                }}
+              >
+                Start credit step
+              </Button>
             </div>
           ) : null}
 

@@ -5,6 +5,7 @@ import { useState } from "react";
 import { TwoDoors } from "@/components/borrower/two-doors";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
+import { captureFunnelEvent } from "@/lib/analytics/client";
 
 export type BorrowerDashboardListing = {
   auction?: {
@@ -84,6 +85,13 @@ export function BorrowerDashboard({ listing }: BorrowerDashboardProps) {
       setRateWatchEnabled(!enabled);
       setMessage("Rate watch could not be updated.");
       return;
+    }
+
+    if (enabled) {
+      void captureFunnelEvent("ratewatch_enabled", "borrower_dashboard", {
+        listingId: listing.id,
+        status: "enabled",
+      });
     }
 
     setMessage(enabled ? "Rate watch is on." : "Rate watch is off.");

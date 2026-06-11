@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { LenderCard } from "@/components/lender-card";
 import { Button } from "@/components/ui/button";
 import { ConsentCheckbox } from "@/components/ui/consent-checkbox";
+import { captureFunnelEvent } from "@/lib/analytics/client";
 import { consentTextForParty } from "@/lib/consent/text";
 
 export type DirectoryConnection = {
@@ -120,6 +121,11 @@ export function LenderDirectory({ lenders, listing }: LenderDirectoryProps) {
     setSelectedLender(undefined);
     setConsentHash(undefined);
     setMessage("Introduction delivered.");
+    void captureFunnelEvent("connection_purchased", "connect", {
+      lenderOrgId: selectedLender.id,
+      listingId: listing.id,
+      status: result.status,
+    });
   }
 
   async function closeConnection() {

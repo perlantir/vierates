@@ -1,6 +1,9 @@
 name: CI
 
 on:
+  push:
+    branches:
+      - main
   pull_request:
 
 env:
@@ -26,6 +29,7 @@ env:
   PERSONA_API_KEY: "persona_ci_key"
   ATTOM_KEY: "attom_ci_key"
   SENTRY_DSN: "https://ci@sentry.example/1"
+  NEXT_PUBLIC_SENTRY_DSN: "https://ci@sentry.example/1"
   POSTHOG_KEY: "phc_vierates_ci"
   UPSTASH_REDIS_REST_URL: "https://vierates-ci.upstash.io"
   UPSTASH_REDIS_REST_TOKEN: "upstash_ci_token"

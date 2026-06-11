@@ -24,7 +24,7 @@ export default function PrivacyPage() {
         ],
         [
           "Analytics",
-          "VieRates measures page views and conversion events so we can find broken flows and improve the marketplace. We do not send addresses, phone numbers, email addresses, or free-form borrower answers in analytics events.",
+          "VieRates measures page views and conversion events with a first-party session identifier so we can find broken flows and improve the marketplace. We do not sell analytics data, use advertising cookies, or send addresses, phone numbers, email addresses, or free-form borrower answers in analytics events.",
         ],
         [
           "Contact",

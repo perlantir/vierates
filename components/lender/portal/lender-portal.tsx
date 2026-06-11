@@ -2,9 +2,10 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { captureFunnelEvent } from "@/lib/analytics/client";
 
 export type LenderAuctionCard = {
   auction?: {
@@ -65,6 +66,29 @@ export function LenderPortal({
   );
   const [message, setMessage] = useState<string>();
   const [isBusy, setIsBusy] = useState(false);
+
+  useEffect(() => {
+    if (!org) {
+      return;
+    }
+
+    void captureFunnelEvent("board_viewed", "lender_board", {
+      count: auctions.length,
+      lenderOrgId: org.id,
+      status: org.status,
+    });
+  }, [auctions.length, org]);
+
+  useEffect(() => {
+    if (!selectedAuctionId || !org) {
+      return;
+    }
+
+    void captureFunnelEvent("bid_composer_opened", "bid_composer", {
+      auctionId: selectedAuctionId,
+      lenderOrgId: org.id,
+    });
+  }, [org, selectedAuctionId]);
 
   if (!org || org.status !== "APPROVED") {
     return (
@@ -175,6 +199,13 @@ export function LenderPortal({
                 ].join(" ")}
                 href={`#${item.toLowerCase().replaceAll(" ", "-")}`}
                 key={item}
+                onClick={() => {
+                  if (item === "ROI") {
+                    void captureFunnelEvent("roi_viewed", "lender_roi", {
+                      lenderOrgId: org.id,
+                    });
+                  }
+                }}
               >
                 {item}
               </a>

@@ -31,6 +31,7 @@ const envSchema = z.object({
   INNGEST_EVENT_KEY: nonPlaceholder,
   INNGEST_SIGNING_KEY: nonPlaceholder,
   NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: prefixedSecret("pk_"),
+  NEXT_PUBLIC_SENTRY_DSN: z.string().url().optional(),
   PERSONA_API_KEY: nonPlaceholder,
   POSTHOG_KEY: prefixedSecret("phc_"),
   PUSHER_APP_ID: nonPlaceholder,

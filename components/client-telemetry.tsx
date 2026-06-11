@@ -3,43 +3,19 @@
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 
-const sessionKey = "vierates:analytics-session";
+import { captureFunnelEvent } from "@/lib/analytics/client";
 
 export function ClientTelemetry() {
   const pathname = usePathname();
 
   useEffect(() => {
-    const sessionId = getSessionId();
-
-    void fetch("/api/analytics/funnel", {
-      body: JSON.stringify({
-        event: "page_view",
-        metadata: {
-          path: pathname,
-          surface: surfaceForPath(pathname),
-        },
-        sessionId,
-        step: pathname,
-      }),
-      headers: { "content-type": "application/json" },
-      method: "POST",
-    }).catch(() => undefined);
+    void captureFunnelEvent("page_view", pathname, {
+      path: pathname,
+      surface: surfaceForPath(pathname),
+    });
   }, [pathname]);
 
   return null;
-}
-
-function getSessionId() {
-  const existing = sessionStorage.getItem(sessionKey);
-
-  if (existing) {
-    return existing;
-  }
-
-  const sessionId = crypto.randomUUID();
-  sessionStorage.setItem(sessionKey, sessionId);
-
-  return sessionId;
 }
 
 function surfaceForPath(pathname: string) {
