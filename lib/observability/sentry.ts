@@ -1,7 +1,5 @@
 import * as Sentry from "@sentry/nextjs";
 
-import { getEnv } from "@/lib/env";
-
 let sentryInitialized = false;
 
 export function initSentry() {
@@ -9,11 +7,23 @@ export function initSentry() {
     return;
   }
 
-  const env = getEnv();
+  const dsn = process.env.SENTRY_DSN;
+  if (!dsn) {
+    return;
+  }
+
+  const demoMode = process.env.DEMO_MODE === "true";
+  if (
+    demoMode &&
+    (process.env.NODE_ENV === "production" ||
+      process.env.VERCEL_ENV === "production")
+  ) {
+    throw new Error("DEMO_MODE cannot be true in production.");
+  }
 
   Sentry.init({
-    dsn: env.SENTRY_DSN,
-    tracesSampleRate: env.DEMO_MODE ? 1.0 : 0.1,
+    dsn,
+    tracesSampleRate: demoMode ? 1.0 : 0.1,
     sendDefaultPii: false,
   });
 
