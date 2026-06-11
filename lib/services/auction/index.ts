@@ -336,6 +336,7 @@ export async function pickWinningBid(
 }
 
 export function authorizePusherChannel(input: {
+  auctionId?: string;
   channelName: string;
   listingId?: string;
   role: Role;
@@ -348,7 +349,11 @@ export function authorizePusherChannel(input: {
   }
 
   if (input.channelName.startsWith("private-lender-auction-")) {
-    return input.role === Role.LENDER;
+    return (
+      input.role === Role.LENDER &&
+      Boolean(input.auctionId) &&
+      input.channelName === `private-lender-auction-${input.auctionId}`
+    );
   }
 
   return false;

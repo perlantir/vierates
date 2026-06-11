@@ -43,6 +43,12 @@ describe("security: compliance copy", () => {
     }
   });
 
+  it("does not frame lender pricing as funded-loan-contingent", () => {
+    const text = readFileSync("app/(marketing)/lenders/page.tsx", "utf8");
+
+    expect(text).not.toMatch(/cost per funded loan|your next funded loan/i);
+  });
+
   it("routes rate-bearing UI through RateDisplay", () => {
     const rateFiles = ["components/borrower/verify/verification-flow.tsx"];
 

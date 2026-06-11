@@ -1,4 +1,10 @@
-import { ConsentType, ListingStatus, PrismaClient, Role } from "@prisma/client";
+import {
+  ConsentType,
+  ListingStatus,
+  PrismaClient,
+  Role,
+  StateStatus,
+} from "@prisma/client";
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
@@ -6,6 +12,7 @@ import { describe, expect, it } from "vitest";
 import { sha256 } from "../../lib/consent/records";
 import { consentTextForParty } from "../../lib/consent/text";
 import { createListingFromWizard } from "../../lib/borrower/wizard";
+import { scheduleBorrowerAuction } from "../../lib/borrower/verification";
 
 process.env.DATABASE_URL ??=
   "postgresql://vierates:vierates@localhost:54329/vierates?schema=public";
@@ -83,6 +90,51 @@ describe("security: consent integrity", () => {
       where: { borrowerUserId: user.id, status: ListingStatus.LIVE },
     });
     expect(liveListing).toBeNull();
+  });
+
+  it("requires GREEN state before creating an auction", async () => {
+    const suffix = String(Date.now()) + Math.random().toString(16).slice(2);
+    const borrower = await prisma.user.create({
+      data: {
+        clerkId: `geo-auction-security:${suffix}`,
+        role: Role.BORROWER,
+      },
+    });
+    const listing = await prisma.listing.create({
+      data: {
+        borrowerUserId: borrower.id,
+        county: "Security",
+        creditBandStated: "740_PLUS",
+        currentRateBand: "6_5_TO_7",
+        estValueBand: "$550k-$600k",
+        incomeBandStated: "200K_PLUS",
+        loanAmount: 400000,
+        ltvBand: "60-70",
+        occupancy: "PRIMARY",
+        propertyMatchOk: true,
+        propertyType: "SINGLE_FAMILY",
+        purpose: "REFINANCE",
+        state: "ZZ",
+        status: ListingStatus.LIVE,
+        timeline: "ASAP",
+      },
+    });
+    await prisma.stateRule.upsert({
+      create: { state: "ZZ", status: StateStatus.RED },
+      update: { status: StateStatus.RED },
+      where: { state: "ZZ" },
+    });
+
+    await expect(
+      scheduleBorrowerAuction(prisma, {
+        borrowerUserId: borrower.id,
+        listingId: listing.id,
+      }),
+    ).rejects.toMatchObject({ code: "STATE_NOT_LIVE" });
+
+    await expect(
+      prisma.auction.findUnique({ where: { listingId: listing.id } }),
+    ).resolves.toBeNull();
   });
 
   it("requires reveal consent before identity grants exist", async () => {

@@ -5,6 +5,7 @@ import {
   Prisma,
   PrismaClient,
   Role,
+  StateStatus,
 } from "@prisma/client";
 
 import { maskedPreviewFromLenderView } from "@/lib/borrower/masked-preview";
@@ -234,6 +235,18 @@ export async function scheduleBorrowerAuction(
       input.borrowerUserId,
       input.listingId,
     );
+    const stateRule = await tx.stateRule.findUnique({
+      where: { state: listing.state },
+    });
+
+    if ((stateRule?.status ?? StateStatus.YELLOW) !== StateStatus.GREEN) {
+      throw new VerificationFlowError(
+        "VieRates is not live for this state yet.",
+        "STATE_NOT_LIVE",
+        409,
+      );
+    }
+
     const existing = await tx.auction.findUnique({
       where: { listingId: listing.id },
     });

@@ -73,6 +73,31 @@ export async function requestLenderConnection(
   },
 ) {
   return db.$transaction(async (tx) => {
+    const existingTxn = await tx.creditTransaction.findUnique({
+      where: { idempotencyKey: input.idempotencyKey },
+    });
+
+    if (existingTxn) {
+      const existingConnection = await tx.connection.findFirst({
+        where: {
+          creditTxnId: existingTxn.id,
+          listing: {
+            borrowerUserId: input.borrowerUserId,
+          },
+        },
+      });
+
+      if (existingConnection) {
+        return existingConnection;
+      }
+
+      throw new ConnectFlowError(
+        "Duplicate connection idempotency key.",
+        "IDEMPOTENCY_CONFLICT",
+        409,
+      );
+    }
+
     const listing = await tx.listing.findFirst({
       where: {
         borrowerUserId: input.borrowerUserId,
@@ -134,7 +159,15 @@ export async function requestLenderConnection(
       );
     }
 
-    if (lender.wallet.balance < 1) {
+    const walletDebit = await tx.creditWallet.updateMany({
+      data: { balance: { decrement: 1 } },
+      where: {
+        balance: { gte: 1 },
+        id: lender.wallet.id,
+      },
+    });
+
+    if (walletDebit.count !== 1) {
       throw new ConnectFlowError(
         "Lender wallet has no credits.",
         "NO_CREDITS",
@@ -162,11 +195,6 @@ export async function requestLenderConnection(
         refId: `${listing.id}:${lender.id}`,
         walletId: lender.wallet.id,
       },
-    });
-
-    await tx.creditWallet.update({
-      data: { balance: { decrement: 1 } },
-      where: { id: lender.wallet.id },
     });
 
     const connection = await tx.connection.create({

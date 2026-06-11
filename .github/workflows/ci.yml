@@ -51,6 +51,8 @@ jobs:
         run: pnpm typecheck
       - name: Lint
         run: pnpm lint
+      - name: Security tests
+        run: pnpm test -- tests/security
       - name: Unit tests
         run: pnpm test
       - name: Build

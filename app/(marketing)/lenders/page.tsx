@@ -10,9 +10,7 @@ export default function LendersPage() {
         <div className="vr-frame grid gap-10 py-14 md:grid-cols-[1.08fr_0.92fr] md:items-center md:py-20">
           <div>
             <h1 className="font-display text-5xl font-semibold leading-tight md:text-6xl">
-              Your next funded loan for ~
-              <span className="vr-data text-funded">$300</span> in marketing
-              cost. Not <span className="vr-data text-on-ink-dim">$3,000</span>.
+              Predictable marketplace credits for verified borrower demand.
             </h1>
             <p className="mt-6 max-w-2xl text-lg leading-8 text-on-ink-dim">
               Bid on verified borrowers — soft-pull credit band and verified
@@ -88,7 +86,9 @@ export default function LendersPage() {
 function CostComparison() {
   return (
     <div className="rounded-lg border border-ink-line bg-ink-raised p-6">
-      <p className="vr-eyebrow mb-5 text-on-ink-dim">Cost per funded loan</p>
+      <p className="vr-eyebrow mb-5 text-on-ink-dim">
+        Example marketplace spend
+      </p>
       {[
         ["Legacy paid channels", "$3,000", "62%"],
         ["Aggregator channels", "$1,400", "34%"],

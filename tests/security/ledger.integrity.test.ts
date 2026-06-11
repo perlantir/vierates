@@ -4,10 +4,14 @@ import {
   PrismaClient,
   Role,
 } from "@prisma/client";
+import { readFileSync } from "node:fs";
 import Stripe from "stripe";
 import { describe, expect, it } from "vitest";
 
-import { grantCredits } from "../../lib/services/billing";
+import { requestLenderConnection } from "../../lib/borrower/connect";
+import { sha256 } from "../../lib/consent/records";
+import { consentTextForParty } from "../../lib/consent/text";
+import { grantCredits, reconcileWallet } from "../../lib/services/billing";
 import { AuctionServiceError, submitBid } from "../../lib/services/auction";
 import { POST as stripeWebhook } from "../../app/api/stripe/webhook/route";
 import { setValidTestEnv } from "../helpers/env";
@@ -119,6 +123,72 @@ describe("security: ledger integrity", () => {
     expect(wallet.balance).toBe(0);
   });
 
+  it("returns the original connection for replayed connection idempotency keys", async () => {
+    const fixture = await createConnectionFixture(2, 1);
+    const text = consentTextForParty(fixture.legalName);
+    const input = {
+      borrowerUserId: fixture.listings[0].borrowerUserId,
+      consentTextShown: text,
+      idempotencyKey: `security-connect-idem:${fixture.suffix}`,
+      ip: "198.51.100.81",
+      lenderOrgId: fixture.lenderOrgId,
+      listingId: fixture.listings[0].listingId,
+      textShownSha256: sha256(text),
+      userAgent: "vitest",
+    };
+
+    const first = await requestLenderConnection(prisma, input);
+    const second = await requestLenderConnection(prisma, input);
+    const wallet = await prisma.creditWallet.findUniqueOrThrow({
+      where: { lenderOrgId: fixture.lenderOrgId },
+    });
+    const transactions = await prisma.creditTransaction.findMany({
+      where: { walletId: wallet.id, reason: "CONNECTION" },
+    });
+
+    expect(second.id).toBe(first.id);
+    expect(wallet.balance).toBe(1);
+    expect(transactions).toHaveLength(1);
+  });
+
+  it("prevents concurrent connection debits from taking a wallet negative", async () => {
+    const fixture = await createConnectionFixture(1, 2);
+    const text = consentTextForParty(fixture.legalName);
+
+    const results = await Promise.allSettled(
+      fixture.listings.map((listing, index) =>
+        requestLenderConnection(prisma, {
+          borrowerUserId: listing.borrowerUserId,
+          consentTextShown: text,
+          idempotencyKey: `security-connect-race:${fixture.suffix}:${index}`,
+          ip: "198.51.100.82",
+          lenderOrgId: fixture.lenderOrgId,
+          listingId: listing.listingId,
+          textShownSha256: sha256(text),
+          userAgent: "vitest",
+        }),
+      ),
+    );
+    const wallet = await prisma.creditWallet.findUniqueOrThrow({
+      where: { lenderOrgId: fixture.lenderOrgId },
+    });
+    const transactions = await prisma.creditTransaction.findMany({
+      where: { walletId: wallet.id, reason: "CONNECTION" },
+    });
+
+    expect(
+      results.filter((result) => result.status === "fulfilled"),
+    ).toHaveLength(1);
+    expect(
+      results.filter(
+        (result) =>
+          result.status === "rejected" && result.reason?.code === "NO_CREDITS",
+      ),
+    ).toHaveLength(1);
+    expect(wallet.balance).toBe(0);
+    expect(transactions).toHaveLength(1);
+  });
+
   it("blocks replayed credit grants by idempotency key", async () => {
     const fixture = await createOpenAuctionFixture(0);
     const idempotencyKey = `security-grant:${Date.now()}`;
@@ -141,6 +211,54 @@ describe("security: ledger integrity", () => {
     });
     expect(second.id).toBe(first.id);
     expect(wallet?.balance).toBe(10);
+  });
+
+  it("reconciles wallet balance to immutable transaction deltas", async () => {
+    const fixture = await createOpenAuctionFixture(0);
+
+    await grantCredits(prisma, {
+      credits: 4,
+      idempotencyKey: `security-reconcile-grant:${fixture.lenderOrgId}:${Date.now()}`,
+      lenderOrgId: fixture.lenderOrgId,
+      reason: "GRANT",
+    });
+    await submitBid(prisma, {
+      auctionId: fixture.auctionId,
+      idempotencyKey: `security-reconcile-bid:${fixture.lenderOrgId}:${Date.now()}`,
+      itemizedFees: [
+        { amountCents: 99_500, financeCharge: true, label: "Origination" },
+      ],
+      lenderOrgId: fixture.lenderOrgId,
+      lenderUserId: fixture.lenderUserId,
+      lockDays: 45,
+      points: 0,
+      product: "30Y_FIXED",
+      program: "Verified",
+      rateBp: 600,
+    });
+
+    await expect(
+      reconcileWallet(prisma, fixture.lenderOrgId),
+    ).resolves.toMatchObject({
+      balance: 2,
+      expected: 2,
+      ok: true,
+    });
+  });
+
+  it("contains no funded-loan-contingent billing code", () => {
+    const billingCode = [
+      "app/api/stripe/webhook/route.ts",
+      "lib/borrower/connect.ts",
+      "lib/services/auction/index.ts",
+      "lib/services/billing.ts",
+    ]
+      .map((file) => readFileSync(file, "utf8"))
+      .join("\n");
+
+    expect(billingCode).not.toMatch(
+      /funded loan|success fee|basis-point fee|basis point fee|commission/i,
+    );
   });
 
   it("rejects unsigned Stripe webhook events", async () => {
@@ -293,4 +411,65 @@ async function createAuctionForBorrower(borrowerUserId: string) {
   });
 
   return auction.id;
+}
+
+async function createConnectionFixture(
+  walletBalance: number,
+  listingCount: 1 | 2,
+) {
+  const suffix = String(Date.now()) + Math.random().toString(16).slice(2);
+  const legalName = `Security Connect Lender ${suffix}`;
+  const lenderOrg = await prisma.lenderOrg.create({
+    data: {
+      legalName,
+      nmlsId: `4${String(Date.now()).slice(-7)}${suffix.slice(0, 1)}`,
+      statesLicensed: ["IL"],
+      status: "APPROVED",
+    },
+  });
+  await prisma.creditWallet.create({
+    data: {
+      balance: walletBalance,
+      lenderOrgId: lenderOrg.id,
+      plan: "TEST",
+    },
+  });
+  const listings = await Promise.all(
+    Array.from({ length: listingCount }, async (_, index) => {
+      const borrower = await prisma.user.create({
+        data: {
+          clerkId: `security-connect-borrower:${suffix}:${index}`,
+          role: Role.BORROWER,
+        },
+      });
+      const listing = await prisma.listing.create({
+        data: {
+          borrowerUserId: borrower.id,
+          county: "Cook",
+          creditBandStated: "740_PLUS",
+          currentRateBand: "6_5_TO_7",
+          estValueBand: "$550k-$600k",
+          incomeBandStated: "200K_PLUS",
+          loanAmount: 400000,
+          ltvBand: "60-70",
+          occupancy: "PRIMARY",
+          propertyMatchOk: true,
+          propertyType: "SINGLE_FAMILY",
+          purpose: "REFINANCE",
+          state: "IL",
+          status: ListingStatus.LIVE,
+          timeline: `ASAP_${suffix}_${index}`,
+        },
+      });
+
+      return { borrowerUserId: borrower.id, listingId: listing.id };
+    }),
+  );
+
+  return {
+    legalName,
+    lenderOrgId: lenderOrg.id,
+    listings,
+    suffix,
+  };
 }
