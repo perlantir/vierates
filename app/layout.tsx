@@ -22,6 +22,10 @@ const plexMono = IBM_Plex_Mono({
 export const metadata: Metadata = {
   title: "VieRates",
   description: "Anonymous mortgage bidding marketplace.",
+  icons: {
+    icon: [{ url: "/assets/favicon.svg", type: "image/svg+xml" }],
+    shortcut: "/assets/favicon.svg",
+  },
 };
 
 export default function RootLayout({

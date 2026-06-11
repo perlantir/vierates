@@ -11,10 +11,18 @@ export function FooterDisclosures() {
         <div className="grid gap-8 md:grid-cols-[1.25fr_0.8fr_0.8fr_0.8fr]">
           <div>
             <Link
-              className="font-display text-2xl font-extrabold no-underline"
+              aria-label="VieRates home"
+              className="inline-flex items-center gap-3 font-display text-2xl font-extrabold no-underline"
               href="/"
             >
-              VieRates
+              <Image
+                alt=""
+                className="h-9 w-9"
+                height={44}
+                src="/assets/logo-mark.svg"
+                width={44}
+              />
+              <span>VieRates</span>
             </Link>
             <p className="mt-3 max-w-[18rem] text-sm leading-6 text-on-ink-dim">
               Make lenders vie for you.
