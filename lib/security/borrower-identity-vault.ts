@@ -6,8 +6,6 @@ import {
   randomBytes,
 } from "node:crypto";
 
-import { getEnv } from "@/lib/env";
-
 const cipherVersion = "v1";
 const ivLength = 12;
 const tagLength = 16;
@@ -119,10 +117,18 @@ function deriveIdentitySubkey(info: string): Buffer {
 }
 
 function decodeIdentityKey(): Buffer {
-  const value = getEnv().BORROWER_IDENTITY_KEY;
+  const value = process.env.BORROWER_IDENTITY_KEY;
+
+  if (!value) {
+    throw new Error("BORROWER_IDENTITY_KEY is required.");
+  }
 
   if (/^[a-f0-9]{64}$/i.test(value)) {
     return Buffer.from(value, "hex");
+  }
+
+  if (!/^[A-Za-z0-9+/=_-]+$/.test(value)) {
+    throw new Error("BORROWER_IDENTITY_KEY must be base64 or hex.");
   }
 
   const decoded = Buffer.from(value, "base64");

@@ -177,6 +177,9 @@ describe("security: input and mass-assignment fuzz", () => {
 
   it("returns 503 instead of 500 when Twilio is not configured", async () => {
     process.env.DEMO_MODE = "false";
+    delete process.env.CLERK_SECRET_KEY;
+    delete process.env.STRIPE_SECRET_KEY;
+    delete process.env.POSTHOG_KEY;
 
     const smsResponse = await postTwilioSms(
       new Request("http://localhost/api/twilio/sms", {
