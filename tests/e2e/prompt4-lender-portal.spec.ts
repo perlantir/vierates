@@ -25,9 +25,15 @@ test("approved lender can submit a computed-APR bid from the board", async ({
       role: Role.BORROWER,
     },
   });
-  const lenderUserRecord = await prisma.user.create({
+  const lenderUserARecord = await prisma.user.create({
     data: {
-      clerkId: `portal-lender:${suffix}`,
+      clerkId: `portal-lender-a:${suffix}`,
+      role: Role.LENDER,
+    },
+  });
+  const lenderUserBRecord = await prisma.user.create({
+    data: {
+      clerkId: `portal-lender-b:${suffix}`,
       role: Role.LENDER,
     },
   });
@@ -62,7 +68,14 @@ test("approved lender can submit a computed-APR bid from the board", async ({
     data: {
       lenderOrgId: org.id,
       orgRole: "ORG_ADMIN",
-      userId: lenderUserRecord.id,
+      userId: lenderUserARecord.id,
+    },
+  });
+  const lenderUserB = await prisma.lenderUser.create({
+    data: {
+      lenderOrgId: org.id,
+      orgRole: "LO",
+      userId: lenderUserBRecord.id,
     },
   });
   const listing = await prisma.listing.create({
@@ -110,6 +123,12 @@ test("approved lender can submit a computed-APR bid from the board", async ({
       path: "/",
       value: org.id,
     },
+    {
+      domain: "127.0.0.1",
+      name: "vierates_e2e_lender_user_id",
+      path: "/",
+      value: lenderUserB.id,
+    },
   ]);
 
   await page.goto("/lender");
@@ -130,5 +149,6 @@ test("approved lender can submit a computed-APR bid from the board", async ({
   });
 
   expect(bid?.aprBp).toBeGreaterThan(bid?.rateBp ?? 0);
-  expect(wallet?.balance).toBe(9);
+  expect(bid?.lenderUserId).toBe(lenderUserB.id);
+  expect(wallet?.balance).toBe(8);
 });

@@ -17,6 +17,19 @@ Reminder: an external human penetration test ($5-15k) is the final gate; no real
 
 ## Findings
 
+### Critical/High Review Follow-Up - Fixed - OTP, Authz, Billing, and Core Flow
+
+- C0 hardcoded OTP: confirmed issue. OTP challenges now hash a per-challenge random six-digit code; demo responses return the generated code only for demo/e2e use. The former static `123456` code is rejected by regression tests.
+- C1 `/app/*` route matcher: confirmed issue. Middleware now protects `/app(.*)`.
+- C2 demo borrower/lender impersonation in production: confirmed issue. `loadEnv` forbids `DEMO_MODE=true` in production, and borrower/lender demo auth fallbacks also hard-check non-production runtime.
+- C3/H6 fake Stripe signature and raw body order: confirmed issue. Stripe webhook now reads `request.text()` and verifies with `stripe.webhooks.constructEvent`.
+- C4 OTP rate-limit bypass: confirmed issue. OTP start attempts are rate-limited per normalized phone, not caller-supplied IP.
+- C5/H1 wallet debit race: confirmed issue. Bid debit is atomic/conditional and covered by a concurrent-bid regression test.
+- H1 missing pick endpoint: confirmed issue. Added `POST /api/borrower/auctions/[auctionId]/pick`.
+- H2-H5 bid write-path issues: confirmed issues. `submitBid` requires approved orgs, charges BID + SURCHARGE ledger rows, attributes to the authenticated LO, and the portal uses stable `initial`/`improve` idempotency keys.
+- M1-M4: confirmed issues. Env validation rejects placeholder-like secrets, APR fee rows carry finance-charge classification, bid/webhook rate limiting is wired, and fake TrustedForm cert URLs are no longer accepted from the client route.
+- Retest: `pnpm format`, `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm build`, `pnpm test:e2e`.
+
 ### High - Fixed - Lender API demo fallback outside e2e
 
 - File: `lib/lender/current.ts`
@@ -74,6 +87,8 @@ Additional security coverage:
 - `billing.test.ts`
 - `reputation.test.ts`
 - `lender-board-masking.test.ts`
+- `middleware.test.ts`
+- `rate-limit.test.ts`
 
 ## Commands Run
 
@@ -85,12 +100,15 @@ Additional security coverage:
 - `DATABASE_URL=postgresql://vierates:vierates@localhost:54329/vierates?schema=public pnpm test:e2e`
 - `pnpm audit --audit-level high`
 - Secret regex scan with `rg`
+- Targeted review grep for hardcoded OTP, fake Stripe signature, timestamp idempotency keys, fake TrustedForm URLs, and unguarded lender-user lookup
 
 ## Launch Gate
 
 - Anonymity fuzz: PASS
 - Authz matrix: PASS for implemented app roles/resources
 - Ledger integrity: PASS
+- OTP randomization + phone rate limit: PASS
+- Borrower auction pick endpoint: PASS
 - Consent + compliance copy: PASS
 - Headers/rate-limit/redaction/secret scan/dependency high-critical: PASS, with one moderate dependency finding
 - Field-level encryption: FAIL

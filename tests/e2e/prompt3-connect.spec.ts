@@ -94,7 +94,7 @@ test("borrower requests and closes a lender introduction", async ({ page }) => {
   expect(connection?.status).toBe("DELIVERED");
   expect(connection?.consentRecord.type).toBe(ConsentType.TCPA_CONNECT);
   expect(connection?.consentRecord.textShownSha256).toHaveLength(64);
-  expect(connection?.consentRecord.trustedFormCertUrl).toContain("trustedform");
+  expect(connection?.consentRecord.trustedFormCertUrl).toBeNull();
   expect(connection?.creditTxn.delta).toBe(-1);
   expect(connection?.creditTxn.reason).toBe("CONNECTION");
   expect(connection?.lenderOrg.wallet?.balance).toBe(startingBalance - 1);

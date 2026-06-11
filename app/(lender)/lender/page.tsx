@@ -35,6 +35,7 @@ export default async function LenderPage() {
   }));
   const bids = data.bids.map((bid) => ({
     aprBp: bid.aprBp,
+    auctionId: bid.auctionId,
     auctionListingId: bid.auction.listingId,
     id: bid.id,
     product: bid.product,
@@ -62,7 +63,11 @@ export default async function LenderPage() {
         bids={bids}
         org={
           data.org
-            ? { legalName: data.org.legalName, status: data.org.status }
+            ? {
+                id: data.org.id,
+                legalName: data.org.legalName,
+                status: data.org.status,
+              }
             : null
         }
         wallet={wallet}

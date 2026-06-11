@@ -3,10 +3,28 @@ import { Redis } from "@upstash/redis";
 
 import { getEnv } from "@/lib/env";
 
+type RateLimitWindow = `${number} ${"s" | "m" | "h" | "d"}`;
+
+type RateLimitInput = {
+  key: string;
+  limit: number;
+  prefix: string;
+  window: RateLimitWindow;
+};
+
+type RateLimitResult = {
+  limit: number;
+  remaining: number;
+  reset: number;
+  success: boolean;
+};
+
+const demoBuckets = new Map<string, { count: number; reset: number }>();
+
 export function createFixedWindowRateLimit(
   prefix: string,
   limit: number,
-  window: `${number} ${"s" | "m" | "h" | "d"}`,
+  window: RateLimitWindow,
 ) {
   const env = getEnv();
   const redis = new Redis({
@@ -20,4 +38,77 @@ export function createFixedWindowRateLimit(
     prefix,
     analytics: true,
   });
+}
+
+export async function checkFixedWindowRateLimit(
+  input: RateLimitInput,
+): Promise<RateLimitResult> {
+  if (isLocalRateLimitRuntime()) {
+    return checkDemoFixedWindowRateLimit(input);
+  }
+
+  const limiter = createFixedWindowRateLimit(
+    input.prefix,
+    input.limit,
+    input.window,
+  );
+  const result = await limiter.limit(input.key);
+
+  return {
+    limit: result.limit,
+    remaining: result.remaining,
+    reset: result.reset,
+    success: result.success,
+  };
+}
+
+export function resetDemoRateLimits() {
+  demoBuckets.clear();
+}
+
+function checkDemoFixedWindowRateLimit(input: RateLimitInput): RateLimitResult {
+  const now = Date.now();
+  const durationMs = parseWindowMs(input.window);
+  const bucketKey = `${input.prefix}:${input.key}:${Math.floor(
+    now / durationMs,
+  )}`;
+  const current = demoBuckets.get(bucketKey);
+  const bucket =
+    current && current.reset > now
+      ? current
+      : { count: 0, reset: now + durationMs };
+
+  bucket.count += 1;
+  demoBuckets.set(bucketKey, bucket);
+
+  return {
+    limit: input.limit,
+    remaining: Math.max(input.limit - bucket.count, 0),
+    reset: bucket.reset,
+    success: bucket.count <= input.limit,
+  };
+}
+
+function isLocalRateLimitRuntime(): boolean {
+  return (
+    process.env.DEMO_MODE === "true" ||
+    process.env.VIERATES_E2E === "true" ||
+    process.env.NODE_ENV === "test"
+  );
+}
+
+function parseWindowMs(window: RateLimitWindow): number {
+  const [value, unit] = window.split(" ") as [
+    `${number}`,
+    "s" | "m" | "h" | "d",
+  ];
+  const amount = Number(value);
+  const multiplier = {
+    d: 24 * 60 * 60 * 1000,
+    h: 60 * 60 * 1000,
+    m: 60 * 1000,
+    s: 1000,
+  }[unit];
+
+  return amount * multiplier;
 }

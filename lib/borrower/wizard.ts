@@ -1,4 +1,4 @@
-import { randomBytes } from "node:crypto";
+import { randomBytes, randomInt } from "node:crypto";
 import {
   ConsentType,
   ListingStatus,
@@ -11,6 +11,7 @@ import { z } from "zod";
 
 import { smsOptInText } from "@/lib/borrower/shared";
 import { sha256 } from "@/lib/consent/records";
+import { assertTwilioStubAllowed } from "@/lib/integrations/twilio";
 
 const activeListingStatuses = [
   ListingStatus.DRAFT,
@@ -19,7 +20,11 @@ const activeListingStatuses = [
   ListingStatus.MATCHED,
 ] as const;
 
-export const demoOtpCode = "123456";
+export type OtpChallengeWithDemoCode = Awaited<
+  ReturnType<PrismaClient["otpChallenge"]["create"]>
+> & {
+  demoCode?: string;
+};
 
 export const states = [
   "AL",
@@ -188,9 +193,10 @@ export async function saveListingDraft(
 export async function startOtpChallenge(
   db: PrismaClient,
   input: { ip: string; now?: Date; phone: string },
-) {
+): Promise<OtpChallengeWithDemoCode> {
   const phone = normalizePhone(input.phone);
   const now = input.now ?? new Date();
+  const code = randomOtpCode();
 
   if (isBlockedPhone(phone)) {
     throw new BorrowerFlowError(
@@ -205,8 +211,8 @@ export async function startOtpChallenge(
   const windowStart = new Date(now.getTime() - 15 * 60 * 1000);
   const recentAttempts = await db.otpChallenge.count({
     where: {
-      OR: [{ phone }, { ip: input.ip }],
       createdAt: { gte: windowStart },
+      phone,
     },
   });
 
@@ -218,14 +224,21 @@ export async function startOtpChallenge(
     );
   }
 
-  return db.otpChallenge.create({
+  // TODO(integration): real Twilio Verify code delivery.
+  assertTwilioStubAllowed();
+
+  const challenge = await db.otpChallenge.create({
     data: {
-      codeHash: sha256(demoOtpCode),
+      codeHash: sha256(code),
       expiresAt: new Date(now.getTime() + 10 * 60 * 1000),
       ip: input.ip,
       phone,
     },
   });
+
+  return process.env.DEMO_MODE === "true"
+    ? { ...challenge, demoCode: code }
+    : challenge;
 }
 
 export async function verifyOtpChallenge(
@@ -482,4 +495,14 @@ function valueBand(value: number): string {
 
 function randomToken(): string {
   return randomBytes(18).toString("base64url");
+}
+
+function randomOtpCode(): string {
+  let code = "";
+
+  do {
+    code = randomInt(0, 1_000_000).toString().padStart(6, "0");
+  } while (code === "123456");
+
+  return code;
 }

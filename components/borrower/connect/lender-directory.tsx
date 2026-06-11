@@ -109,7 +109,6 @@ export function LenderDirectory({ lenders, listing }: LenderDirectoryProps) {
         lenderOrgId: selectedLender.id,
         listingId: listing.id,
         textShownSha256: consentHash,
-        trustedFormCertUrl: `https://trustedform.example/vierates/${idempotencyKey}`,
       }),
       headers: { "content-type": "application/json" },
       method: "POST",

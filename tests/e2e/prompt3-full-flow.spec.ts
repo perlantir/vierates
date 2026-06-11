@@ -1,5 +1,5 @@
 import { AuctionStatus, ConsentType, PrismaClient } from "@prisma/client";
-import { expect, test } from "@playwright/test";
+import { expect, type Page, test } from "@playwright/test";
 
 process.env.DATABASE_URL ??=
   "postgresql://vierates:vierates@localhost:54329/vierates?schema=public";
@@ -33,7 +33,7 @@ test("full borrower flow writes all prompt 3 consents and schedules auction", as
   await page.getByRole("button", { name: "ASAP" }).click();
   await page.getByLabel("Mobile phone").fill(phone);
   await page.getByRole("button", { name: "Send code" }).click();
-  await page.getByLabel("Verification code").fill("123456");
+  await page.getByLabel("Verification code").fill(await demoCodeFromPage(page));
   await page.getByRole("button", { name: "Verify and list me" }).click();
   await expect(page.getByTestId("listing-done")).toBeVisible();
 
@@ -97,3 +97,14 @@ test("full borrower flow writes all prompt 3 consents and schedules auction", as
   }
   expect(listing?.auction?.status).toBe(AuctionStatus.SCHEDULED);
 });
+
+async function demoCodeFromPage(page: Page) {
+  const message = await page
+    .getByText(/Demo code sent\. Use \d{6}\./)
+    .textContent();
+  const code = message?.match(/\d{6}/)?.[0];
+
+  expect(code).toBeTruthy();
+
+  return code ?? "";
+}

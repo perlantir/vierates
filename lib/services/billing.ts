@@ -1,5 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 
+import { constructStripeWebhookEvent } from "@/lib/integrations/stripe";
+
 export const BILLING_REASONS = {
   BID: "BID",
   CONNECTION: "CONNECTION",
@@ -93,8 +95,4 @@ export async function reconcileWallet(
   };
 }
 
-export function verifyStripeWebhookSignature(
-  signature: string | null,
-): boolean {
-  return Boolean(signature && signature.length > 8);
-}
+export const verifyStripeWebhookSignature = constructStripeWebhookEvent;

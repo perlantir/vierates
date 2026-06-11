@@ -1,6 +1,8 @@
 import type { Prisma, PrismaClient } from "@prisma/client";
 
 import { normalizePhone } from "@/lib/borrower/wizard";
+import { assertResendStubAllowed } from "@/lib/integrations/resend";
+import { assertTwilioStubAllowed } from "@/lib/integrations/twilio";
 
 const smsStopSuffix = "Reply STOP to opt out.";
 
@@ -62,6 +64,9 @@ export async function sendNotificationEmail(
     to: string;
   },
 ) {
+  // TODO(integration): real Resend email delivery.
+  assertResendStubAllowed();
+
   return db.notificationLog.create({
     data: {
       channel: "EMAIL",
@@ -82,6 +87,9 @@ export async function sendNotificationSms(
     to: string;
   },
 ) {
+  // TODO(integration): real Twilio SMS delivery.
+  assertTwilioStubAllowed();
+
   const phone = normalizePhone(input.to);
   const optedOut = await db.smsOptOut.findUnique({
     where: { phone },

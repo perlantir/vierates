@@ -6,9 +6,9 @@ import {
   notificationTemplates,
   sendNotificationSms,
 } from "../lib/services/notifications";
+import { setValidTestEnv } from "./helpers/env";
 
-process.env.DATABASE_URL ??=
-  "postgresql://vierates:vierates@localhost:54329/vierates?schema=public";
+setValidTestEnv();
 
 const prisma = new PrismaClient();
 const testPhone = "3125558811";

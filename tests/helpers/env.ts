@@ -1,0 +1,31 @@
+export function setValidTestEnv(overrides: Partial<NodeJS.ProcessEnv> = {}) {
+  Object.assign(process.env, {
+    ARRAY_API_KEY: "array_unit_key",
+    ATTOM_KEY: "attom_unit_key",
+    CLERK_SECRET_KEY: "sk_test_vierates_unit",
+    CLERK_WEBHOOK_SECRET: "whsec_vierates_unit",
+    DATABASE_URL:
+      "postgresql://vierates:vierates@localhost:54329/vierates?schema=public",
+    DEMO_MODE: "true",
+    INNGEST_EVENT_KEY: "inngest_unit_event_key",
+    INNGEST_SIGNING_KEY: "inngest_unit_signing_key",
+    NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: "pk_test_vierates_unit",
+    PERSONA_API_KEY: "persona_unit_key",
+    POSTHOG_KEY: "phc_unit_key",
+    PUSHER_APP_ID: "pusher_unit_app",
+    PUSHER_CLUSTER: "us2",
+    PUSHER_KEY: "pusher_unit_key",
+    PUSHER_SECRET: "pusher_unit_secret",
+    SENTRY_DSN: "https://unit@sentry.example/1",
+    STRIPE_SECRET_KEY: "sk_test_vierates_unit",
+    STRIPE_WEBHOOK_SECRET: "whsec_vierates_unit",
+    TRUV_CLIENT_ID: "truv_unit_client",
+    TRUV_SECRET: "truv_unit_secret",
+    TWILIO_ACCOUNT_SID: "AC00000000000000000000000000000000",
+    TWILIO_AUTH_TOKEN: "twilio_unit_auth_token",
+    TWILIO_VERIFY_SERVICE_SID: "VA00000000000000000000000000000000",
+    UPSTASH_REDIS_REST_TOKEN: "upstash_unit_token",
+    UPSTASH_REDIS_REST_URL: "https://unit.upstash.io",
+    ...overrides,
+  });
+}

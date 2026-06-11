@@ -1,9 +1,24 @@
 import { NextResponse } from "next/server";
 
+import { assertTwilioStubAllowed } from "@/lib/integrations/twilio";
 import { prisma } from "@/lib/prisma";
+import { checkFixedWindowRateLimit } from "@/lib/rate-limit";
 import { honorSmsStop } from "@/lib/services/notifications";
 
 export async function POST(request: Request) {
+  assertTwilioStubAllowed();
+
+  const rateLimit = await checkFixedWindowRateLimit({
+    key: requestIp(request),
+    limit: 120,
+    prefix: "webhooks:twilio-sms",
+    window: "1 m",
+  });
+
+  if (!rateLimit.success) {
+    return new NextResponse("<Response></Response>", { status: 429 });
+  }
+
   const formData = await request.formData();
   const from = String(formData.get("From") ?? "");
   const body = String(formData.get("Body") ?? "");
@@ -19,5 +34,11 @@ export async function POST(request: Request) {
         "content-type": "text/xml",
       },
     },
+  );
+}
+
+function requestIp(request: Request): string {
+  return (
+    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "0.0.0.0"
   );
 }

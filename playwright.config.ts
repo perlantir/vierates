@@ -7,33 +7,37 @@ const e2eEnv = {
     process.env.DATABASE_URL ??
     "postgresql://vierates:vierates@localhost:54329/vierates?schema=public",
   NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY:
-    process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ?? "pk_test_replace_me",
-  CLERK_SECRET_KEY: process.env.CLERK_SECRET_KEY ?? "sk_test_replace_me",
-  CLERK_WEBHOOK_SECRET: process.env.CLERK_WEBHOOK_SECRET ?? "whsec_replace_me",
-  STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY ?? "sk_test_replace_me",
+    process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ?? "pk_test_vierates_e2e",
+  CLERK_SECRET_KEY: process.env.CLERK_SECRET_KEY ?? "sk_test_vierates_e2e",
+  CLERK_WEBHOOK_SECRET:
+    process.env.CLERK_WEBHOOK_SECRET ?? "whsec_vierates_e2e",
+  STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY ?? "sk_test_vierates_e2e",
   STRIPE_WEBHOOK_SECRET:
-    process.env.STRIPE_WEBHOOK_SECRET ?? "whsec_replace_me",
-  TWILIO_ACCOUNT_SID: process.env.TWILIO_ACCOUNT_SID ?? "AC_replace_me",
-  TWILIO_AUTH_TOKEN: process.env.TWILIO_AUTH_TOKEN ?? "replace_me",
+    process.env.STRIPE_WEBHOOK_SECRET ?? "whsec_vierates_e2e",
+  TWILIO_ACCOUNT_SID:
+    process.env.TWILIO_ACCOUNT_SID ?? "AC00000000000000000000000000000000",
+  TWILIO_AUTH_TOKEN: process.env.TWILIO_AUTH_TOKEN ?? "twilio_e2e_auth_token",
   TWILIO_VERIFY_SERVICE_SID:
-    process.env.TWILIO_VERIFY_SERVICE_SID ?? "VA_replace_me",
-  PUSHER_APP_ID: process.env.PUSHER_APP_ID ?? "replace_me",
-  PUSHER_KEY: process.env.PUSHER_KEY ?? "replace_me",
-  PUSHER_SECRET: process.env.PUSHER_SECRET ?? "replace_me",
+    process.env.TWILIO_VERIFY_SERVICE_SID ??
+    "VA00000000000000000000000000000000",
+  PUSHER_APP_ID: process.env.PUSHER_APP_ID ?? "pusher_e2e_app",
+  PUSHER_KEY: process.env.PUSHER_KEY ?? "pusher_e2e_key",
+  PUSHER_SECRET: process.env.PUSHER_SECRET ?? "pusher_e2e_secret",
   PUSHER_CLUSTER: process.env.PUSHER_CLUSTER ?? "us2",
-  INNGEST_EVENT_KEY: process.env.INNGEST_EVENT_KEY ?? "replace_me",
-  INNGEST_SIGNING_KEY: process.env.INNGEST_SIGNING_KEY ?? "replace_me",
-  ARRAY_API_KEY: process.env.ARRAY_API_KEY ?? "replace_me",
-  TRUV_CLIENT_ID: process.env.TRUV_CLIENT_ID ?? "replace_me",
-  TRUV_SECRET: process.env.TRUV_SECRET ?? "replace_me",
-  PERSONA_API_KEY: process.env.PERSONA_API_KEY ?? "replace_me",
-  ATTOM_KEY: process.env.ATTOM_KEY ?? "replace_me",
-  SENTRY_DSN: process.env.SENTRY_DSN ?? "https://replace_me@sentry.example/1",
-  POSTHOG_KEY: process.env.POSTHOG_KEY ?? "phc_replace_me",
+  INNGEST_EVENT_KEY: process.env.INNGEST_EVENT_KEY ?? "inngest_e2e_event_key",
+  INNGEST_SIGNING_KEY:
+    process.env.INNGEST_SIGNING_KEY ?? "inngest_e2e_signing_key",
+  ARRAY_API_KEY: process.env.ARRAY_API_KEY ?? "array_e2e_key",
+  TRUV_CLIENT_ID: process.env.TRUV_CLIENT_ID ?? "truv_e2e_client",
+  TRUV_SECRET: process.env.TRUV_SECRET ?? "truv_e2e_secret",
+  PERSONA_API_KEY: process.env.PERSONA_API_KEY ?? "persona_e2e_key",
+  ATTOM_KEY: process.env.ATTOM_KEY ?? "attom_e2e_key",
+  SENTRY_DSN: process.env.SENTRY_DSN ?? "https://e2e@sentry.example/1",
+  POSTHOG_KEY: process.env.POSTHOG_KEY ?? "phc_vierates_e2e",
   UPSTASH_REDIS_REST_URL:
-    process.env.UPSTASH_REDIS_REST_URL ?? "https://replace_me.upstash.io",
+    process.env.UPSTASH_REDIS_REST_URL ?? "https://vierates-e2e.upstash.io",
   UPSTASH_REDIS_REST_TOKEN:
-    process.env.UPSTASH_REDIS_REST_TOKEN ?? "replace_me",
+    process.env.UPSTASH_REDIS_REST_TOKEN ?? "upstash_e2e_token",
   DEMO_MODE: process.env.DEMO_MODE ?? "true",
 };
 

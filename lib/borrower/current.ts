@@ -26,7 +26,7 @@ export async function getCurrentBorrowerUserId(): Promise<string | null> {
     }
   }
 
-  if (process.env.VIERATES_E2E === "true" || process.env.DEMO_MODE === "true") {
+  if (process.env.VIERATES_E2E === "true" || demoAuthFallbackAllowed()) {
     const newestListing = await prisma.listing.findFirst({
       orderBy: { createdAt: "desc" },
       select: { borrowerUserId: true },
@@ -51,4 +51,12 @@ export async function getCurrentBorrowerUserId(): Promise<string | null> {
   });
 
   return user?.role === Role.BORROWER ? user.id : null;
+}
+
+function demoAuthFallbackAllowed(): boolean {
+  return (
+    process.env.DEMO_MODE === "true" &&
+    process.env.NODE_ENV !== "production" &&
+    process.env.VERCEL_ENV !== "production"
+  );
 }

@@ -4,7 +4,6 @@ import { z } from "zod";
 import { smsOptInText } from "@/lib/borrower/shared";
 import {
   BorrowerFlowError,
-  demoOtpCode,
   normalizePhone,
   startOtpChallenge,
 } from "@/lib/borrower/wizard";
@@ -30,7 +29,7 @@ export async function POST(request: Request) {
     return NextResponse.json({
       challengeId: challenge.id,
       consentText: smsOptInText(normalizePhone(parsed.data.phone)),
-      demoCode: process.env.DEMO_MODE === "true" ? demoOtpCode : undefined,
+      demoCode: challenge.demoCode,
       ok: true,
     });
   } catch (error) {

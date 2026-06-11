@@ -9,7 +9,19 @@ import {
 
 import { calculateAprBp } from "@/lib/apr";
 import { createConsentRecord } from "@/lib/consent/records";
+import { BILLING_REASONS } from "@/lib/services/billing";
 import { transitionAuctionStatus } from "@/lib/services/auction/state";
+
+export const BID_CREDIT_COST = 1;
+export const VERIFIED_PROFILE_SURCHARGE_CREDITS = 1;
+export const VERIFIED_PROFILE_BID_TOTAL_CREDITS =
+  BID_CREDIT_COST + VERIFIED_PROFILE_SURCHARGE_CREDITS;
+
+export type BidFeeLine = {
+  amountCents: number;
+  financeCharge: boolean;
+  label: string;
+};
 
 export class AuctionServiceError extends Error {
   constructor(
@@ -25,7 +37,7 @@ export type BidInput = {
   auctionId: string;
   conditions?: string;
   idempotencyKey: string;
-  itemizedFees: number[];
+  itemizedFees: BidFeeLine[];
   lenderOrgId: string;
   lenderUserId: string;
   lockDays: number;
@@ -98,6 +110,9 @@ export async function submitBid(db: PrismaClient, input: BidInput) {
         lenderOrg: {
           include: { wallet: true },
         },
+        user: {
+          select: { role: true },
+        },
       },
       where: {
         id: input.lenderUserId,
@@ -113,7 +128,28 @@ export async function submitBid(db: PrismaClient, input: BidInput) {
       );
     }
 
-    if (lenderUser.lenderOrg.wallet.balance < 1) {
+    if (
+      lenderUser.user.role !== Role.LENDER ||
+      lenderUser.lenderOrg.status !== "APPROVED"
+    ) {
+      throw new AuctionServiceError(
+        "Org not approved.",
+        "ORG_NOT_APPROVED",
+        403,
+      );
+    }
+
+    const walletDebit = await tx.creditWallet.updateMany({
+      data: {
+        balance: { decrement: VERIFIED_PROFILE_BID_TOTAL_CREDITS },
+      },
+      where: {
+        balance: { gte: VERIFIED_PROFILE_BID_TOTAL_CREDITS },
+        id: lenderUser.lenderOrg.wallet.id,
+      },
+    });
+
+    if (walletDebit.count !== 1) {
       throw new AuctionServiceError(
         "Wallet has insufficient credits.",
         "INSUFFICIENT_CREDITS",
@@ -149,7 +185,7 @@ export async function submitBid(db: PrismaClient, input: BidInput) {
     }
 
     const aprBp = calculateAprBp({
-      financeChargeFees: input.itemizedFees,
+      fees: input.itemizedFees,
       loanAmount: auction.listing.loanAmount,
       noteRateBp: input.rateBp,
       points: input.points,
@@ -158,17 +194,22 @@ export async function submitBid(db: PrismaClient, input: BidInput) {
 
     const creditTxn = await tx.creditTransaction.create({
       data: {
-        delta: -1,
+        delta: -BID_CREDIT_COST,
         idempotencyKey: input.idempotencyKey,
-        reason: "BID",
+        reason: BILLING_REASONS.BID,
         refId: auction.id,
         walletId: lenderUser.lenderOrg.wallet.id,
       },
     });
 
-    await tx.creditWallet.update({
-      data: { balance: { decrement: 1 } },
-      where: { id: lenderUser.lenderOrg.wallet.id },
+    await tx.creditTransaction.create({
+      data: {
+        delta: -VERIFIED_PROFILE_SURCHARGE_CREDITS,
+        idempotencyKey: `${input.idempotencyKey}:surcharge`,
+        reason: BILLING_REASONS.SURCHARGE,
+        refId: auction.id,
+        walletId: lenderUser.lenderOrg.wallet.id,
+      },
     });
 
     const bid = await tx.bid.create({
@@ -212,6 +253,7 @@ export async function submitBid(db: PrismaClient, input: BidInput) {
 export async function pickWinningBid(
   db: PrismaClient,
   input: {
+    auctionId?: string;
     bidId: string;
     borrowerUserId: string;
     ip: string;
@@ -229,6 +271,10 @@ export async function pickWinningBid(
     });
 
     if (!bid || bid.auction.listing.borrowerUserId !== input.borrowerUserId) {
+      throw new AuctionServiceError("Bid not found.", "BID_NOT_FOUND", 404);
+    }
+
+    if (input.auctionId && bid.auction.id !== input.auctionId) {
       throw new AuctionServiceError("Bid not found.", "BID_NOT_FOUND", 404);
     }
 

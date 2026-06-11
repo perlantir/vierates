@@ -3,16 +3,15 @@ import { beforeEach, describe, expect, it } from "vitest";
 
 import {
   BorrowerFlowError,
-  demoOtpCode,
   startOtpChallenge,
   verifyOtpChallenge,
 } from "../lib/borrower/wizard";
+import { setValidTestEnv } from "./helpers/env";
 
-process.env.DATABASE_URL ??=
-  "postgresql://vierates:vierates@localhost:54329/vierates?schema=public";
+setValidTestEnv();
 
 const prisma = new PrismaClient();
-const testPhones = ["3125559901", "3125559902", "3125559903"];
+const testPhones = ["3125559901", "3125559902", "3125559903", "3125559904"];
 
 describe("borrower OTP abuse controls", () => {
   beforeEach(async () => {
@@ -39,17 +38,17 @@ describe("borrower OTP abuse controls", () => {
     } satisfies Partial<BorrowerFlowError>);
   });
 
-  it("rate limits repeated code starts by IP or phone", async () => {
+  it("rate limits repeated code starts per phone across IPs", async () => {
     for (let index = 0; index < 3; index += 1) {
       await startOtpChallenge(prisma, {
-        ip: "198.51.100.11",
+        ip: `198.51.100.${11 + index}`,
         phone: testPhones[0],
       });
     }
 
     await expect(
       startOtpChallenge(prisma, {
-        ip: "198.51.100.11",
+        ip: "198.51.100.99",
         phone: testPhones[0],
       }),
     ).rejects.toMatchObject({
@@ -112,7 +111,7 @@ describe("borrower OTP abuse controls", () => {
 
     const result = await verifyOtpChallenge(prisma, {
       challengeId: challenge.id,
-      code: demoOtpCode,
+      code: challenge.demoCode ?? "",
       ip: "198.51.100.13",
       userAgent: "vitest",
     });
@@ -123,5 +122,23 @@ describe("borrower OTP abuse controls", () => {
 
     expect(consent?.textShownSha256).toHaveLength(64);
     expect(consent?.type).toBe("SMS_OPTIN");
+  });
+
+  it("does not accept the former static demo OTP code", async () => {
+    const challenge = await startOtpChallenge(prisma, {
+      ip: "198.51.100.14",
+      phone: "3125559904",
+    });
+
+    await expect(
+      verifyOtpChallenge(prisma, {
+        challengeId: challenge.id,
+        code: "123456",
+        ip: "198.51.100.14",
+        userAgent: "vitest",
+      }),
+    ).rejects.toMatchObject({
+      code: "OTP_CODE_MISMATCH",
+    } satisfies Partial<BorrowerFlowError>);
   });
 });

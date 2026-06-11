@@ -1,15 +1,22 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { getCurrentLenderOrgId } from "@/lib/lender/current";
+import { getCurrentLenderUser } from "@/lib/lender/current";
 import { prisma } from "@/lib/prisma";
+import { checkFixedWindowRateLimit } from "@/lib/rate-limit";
 import { AuctionServiceError, submitBid } from "@/lib/services/auction";
+
+const bidFeeSchema = z.object({
+  amountCents: z.number().int().min(0).max(500_000),
+  financeCharge: z.boolean(),
+  label: z.string().min(1).max(80),
+});
 
 const bidSchema = z.object({
   auctionId: z.string().min(1),
   conditions: z.string().max(500).optional(),
   idempotencyKey: z.string().min(8),
-  itemizedFees: z.array(z.number().min(0)).default([]),
+  itemizedFees: z.array(bidFeeSchema).default([]),
   lockDays: z.number().int().min(15).max(180),
   points: z.number().min(-5).max(5),
   product: z.string().min(2),
@@ -18,10 +25,10 @@ const bidSchema = z.object({
 });
 
 export async function POST(request: Request) {
-  const lenderOrgId = await getCurrentLenderOrgId();
+  const lenderUser = await getCurrentLenderUser();
   const parsed = bidSchema.safeParse(await request.json());
 
-  if (!lenderOrgId) {
+  if (!lenderUser) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -29,19 +36,25 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid bid" }, { status: 400 });
   }
 
-  const lenderUser = await prisma.lenderUser.findFirst({
-    where: { lenderOrgId },
+  const rateLimit = await checkFixedWindowRateLimit({
+    key: lenderUser.lenderOrgId,
+    limit: 30,
+    prefix: "lender:bids",
+    window: "1 m",
   });
 
-  if (!lenderUser) {
-    return NextResponse.json({ error: "No lender user" }, { status: 403 });
+  if (!rateLimit.success) {
+    return NextResponse.json(
+      { error: "Too many bid attempts" },
+      { status: 429 },
+    );
   }
 
   try {
     const bid = await submitBid(prisma, {
       ...parsed.data,
-      lenderOrgId,
-      lenderUserId: lenderUser.id,
+      lenderOrgId: lenderUser.lenderOrgId,
+      lenderUserId: lenderUser.lenderUserId,
     });
 
     return NextResponse.json({

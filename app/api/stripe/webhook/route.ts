@@ -8,6 +8,7 @@ import {
   verifyStripeWebhookSignature,
 } from "@/lib/services/billing";
 import { prisma } from "@/lib/prisma";
+import { checkFixedWindowRateLimit } from "@/lib/rate-limit";
 
 const stripeEventSchema = z.object({
   credits: z.number().int().positive(),
@@ -17,11 +18,31 @@ const stripeEventSchema = z.object({
 });
 
 export async function POST(request: Request) {
-  if (!verifyStripeWebhookSignature(request.headers.get("stripe-signature"))) {
+  const rateLimit = await checkFixedWindowRateLimit({
+    key: requestIp(request),
+    limit: 120,
+    prefix: "webhooks:stripe",
+    window: "1 m",
+  });
+
+  if (!rateLimit.success) {
+    return NextResponse.json(
+      { error: "Too many webhook attempts" },
+      { status: 429 },
+    );
+  }
+
+  const rawBody = await request.text();
+  const event = verifyStripeWebhookSignature({
+    payload: rawBody,
+    signature: request.headers.get("stripe-signature"),
+  });
+
+  if (!event) {
     return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
   }
 
-  const parsed = stripeEventSchema.safeParse(await request.json());
+  const parsed = stripeEventSchema.safeParse(stripeBillingEvent(event));
 
   if (!parsed.success) {
     return NextResponse.json({ error: "Invalid event" }, { status: 400 });
@@ -58,4 +79,26 @@ export async function POST(request: Request) {
       { status: 500 },
     );
   }
+}
+
+function stripeBillingEvent(event: {
+  data: { object: unknown };
+  id: string;
+  type: string;
+}) {
+  const object = event.data.object as { metadata?: Record<string, string> };
+  const metadata = object.metadata ?? {};
+
+  return {
+    credits: Number(metadata.credits),
+    id: event.id,
+    lenderOrgId: metadata.lenderOrgId,
+    type: event.type,
+  };
+}
+
+function requestIp(request: Request): string {
+  return (
+    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "0.0.0.0"
+  );
 }

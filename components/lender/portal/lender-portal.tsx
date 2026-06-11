@@ -28,6 +28,7 @@ export type LenderPortalProps = {
   auctions: LenderAuctionCard[];
   bids: {
     aprBp: number;
+    auctionId: string;
     auctionListingId: string;
     id: string;
     product: string;
@@ -35,6 +36,7 @@ export type LenderPortalProps = {
     status: string;
   }[];
   org?: {
+    id: string;
     legalName: string;
     status: string;
   } | null;
@@ -85,18 +87,30 @@ export function LenderPortal({
   }
 
   async function submitDemoBid() {
-    if (!selectedAuctionId) {
+    if (!selectedAuctionId || !org) {
       return;
     }
 
     setIsBusy(true);
     setMessage(undefined);
 
+    const bidAttempt = bidAttemptForAuction(bids, selectedAuctionId);
     const response = await fetch("/api/lender/bids", {
       body: JSON.stringify({
         auctionId: selectedAuctionId,
-        idempotencyKey: `ui-bid:${selectedAuctionId}:${Date.now()}`,
-        itemizedFees: [995, 650],
+        idempotencyKey: `bid:${selectedAuctionId}:${org.id}:${bidAttempt}`,
+        itemizedFees: [
+          {
+            amountCents: 99_500,
+            financeCharge: true,
+            label: "Origination",
+          },
+          {
+            amountCents: 65_000,
+            financeCharge: false,
+            label: "Appraisal",
+          },
+        ],
         lockDays: 45,
         points: 0.25,
         product: "30Y_FIXED",
@@ -188,7 +202,7 @@ export function LenderPortal({
                 Bid composer
               </h2>
               <p className="mt-2 text-sm leading-6 text-slate">
-                This bid uses 1 credit + $2 verification surcharge.
+                This bid uses 1 bid credit plus the verified-profile surcharge.
               </p>
               <div className="mt-5">
                 <Button
@@ -227,6 +241,15 @@ export function LenderPortal({
       </div>
     </main>
   );
+}
+
+function bidAttemptForAuction(
+  bids: LenderPortalProps["bids"],
+  auctionId: string,
+): "improve" | "initial" {
+  return bids.some((bid) => bid.auctionId === auctionId)
+    ? "improve"
+    : "initial";
 }
 
 function Metric({ label, value }: { label: string; value: string }) {

@@ -1,7 +1,13 @@
 export type AprBasisPoint = number;
 
+export type AprFeeLine = {
+  amountCents: number;
+  financeCharge: boolean;
+  label: string;
+};
+
 export type AprInput = {
-  financeChargeFees: number[];
+  fees: AprFeeLine[];
   loanAmount: number;
   noteRateBp: number;
   points: number;
@@ -17,7 +23,9 @@ export function calculateAprBp(input: AprInput): AprBasisPoint {
   );
   const prepaidFinanceCharges =
     (input.loanAmount * input.points) / 100 +
-    input.financeChargeFees.reduce((sum, fee) => sum + fee, 0);
+    input.fees
+      .filter((fee) => fee.financeCharge)
+      .reduce((sum, fee) => sum + fee.amountCents / 100, 0);
   const amountFinanced = input.loanAmount - prepaidFinanceCharges;
 
   if (prepaidFinanceCharges === 0) {

@@ -14,7 +14,6 @@ const connectionSchema = z.object({
   lenderOrgId: z.string().min(1),
   listingId: z.string().min(1),
   textShownSha256: z.string().length(64),
-  trustedFormCertUrl: z.string().url().optional(),
 });
 
 export async function POST(request: Request) {
@@ -38,7 +37,6 @@ export async function POST(request: Request) {
       lenderOrgId: parsed.data.lenderOrgId,
       listingId: parsed.data.listingId,
       textShownSha256: parsed.data.textShownSha256,
-      trustedFormCertUrl: parsed.data.trustedFormCertUrl,
       userAgent: request.headers.get("user-agent") ?? "unknown",
     });
 
