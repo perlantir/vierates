@@ -1,8 +1,6 @@
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
 
-import { getEnv } from "@/lib/env";
-
 type RateLimitWindow = `${number} ${"s" | "m" | "h" | "d"}`;
 
 type RateLimitInput = {
@@ -26,10 +24,16 @@ export function createFixedWindowRateLimit(
   limit: number,
   window: RateLimitWindow,
 ) {
-  const env = getEnv();
+  const url = process.env.UPSTASH_REDIS_REST_URL;
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+
+  if (!url || !token) {
+    return undefined;
+  }
+
   const redis = new Redis({
-    url: env.UPSTASH_REDIS_REST_URL,
-    token: env.UPSTASH_REDIS_REST_TOKEN,
+    url,
+    token,
   });
 
   return new Ratelimit({
@@ -52,6 +56,11 @@ export async function checkFixedWindowRateLimit(
     input.limit,
     input.window,
   );
+
+  if (!limiter) {
+    return checkDemoFixedWindowRateLimit(input);
+  }
+
   const result = await limiter.limit(input.key);
 
   return {

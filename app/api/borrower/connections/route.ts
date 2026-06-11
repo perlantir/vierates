@@ -6,6 +6,7 @@ import {
   ConnectFlowError,
   requestLenderConnection,
 } from "@/lib/borrower/connect";
+import { readJsonBody, rejectLargePayload } from "@/lib/http/request-guards";
 import { prisma } from "@/lib/prisma";
 
 const connectionSchema = z.object({
@@ -18,11 +19,24 @@ const connectionSchema = z.object({
 
 export async function POST(request: Request) {
   const borrowerUserId = await getCurrentBorrowerUserId();
-  const parsed = connectionSchema.safeParse(await request.json());
 
   if (!borrowerUserId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+
+  const payloadTooLarge = rejectLargePayload(request, 16_384);
+
+  if (payloadTooLarge) {
+    return payloadTooLarge;
+  }
+
+  const body = await readJsonBody(request);
+
+  if (!body.ok) {
+    return body.response;
+  }
+
+  const parsed = connectionSchema.safeParse(body.value);
 
   if (!parsed.success) {
     return NextResponse.json({ error: "Invalid connection" }, { status: 400 });

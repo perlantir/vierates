@@ -8,7 +8,7 @@ export async function getCurrentAdminUserId(): Promise<string | null> {
     return "e2e-admin";
   }
 
-  const session = await auth();
+  const session = await safeAuth();
 
   if (!session.userId) {
     return null;
@@ -20,4 +20,14 @@ export async function getCurrentAdminUserId(): Promise<string | null> {
   });
 
   return user?.role === Role.ADMIN ? user.id : null;
+}
+
+async function safeAuth(): ReturnType<typeof auth> {
+  try {
+    return await auth();
+  } catch {
+    return {
+      userId: null,
+    } as Awaited<ReturnType<typeof auth>>;
+  }
 }

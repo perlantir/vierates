@@ -6,7 +6,7 @@ import type { Actor } from "@/lib/authz";
 type ClaimMap = Record<string, unknown>;
 
 export async function getActorFromClerk(): Promise<Actor | null> {
-  const session = await auth();
+  const session = await safeAuth();
 
   if (!session.userId) {
     return null;
@@ -27,6 +27,14 @@ export async function getActorFromClerk(): Promise<Actor | null> {
     lenderOrgId: readString(metadata?.lenderOrgId),
     orgRole: parseOrgRole(metadata?.orgRole),
   };
+}
+
+async function safeAuth(): Promise<Awaited<ReturnType<typeof auth>>> {
+  try {
+    return await auth();
+  } catch {
+    return { userId: null } as Awaited<ReturnType<typeof auth>>;
+  }
 }
 
 function readClaimMap(value: unknown): ClaimMap | undefined {

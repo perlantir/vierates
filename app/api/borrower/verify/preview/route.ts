@@ -6,6 +6,7 @@ import {
   getMaskedPreviewForBorrower,
   VerificationFlowError,
 } from "@/lib/borrower/verification";
+import { readJsonBody, rejectLargePayload } from "@/lib/http/request-guards";
 import { prisma } from "@/lib/prisma";
 
 const previewSchema = z.object({
@@ -14,11 +15,24 @@ const previewSchema = z.object({
 
 export async function POST(request: Request) {
   const borrowerUserId = await getCurrentBorrowerUserId();
-  const parsed = previewSchema.safeParse(await request.json());
 
   if (!borrowerUserId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+
+  const payloadTooLarge = rejectLargePayload(request, 8_192);
+
+  if (payloadTooLarge) {
+    return payloadTooLarge;
+  }
+
+  const body = await readJsonBody(request);
+
+  if (!body.ok) {
+    return body.response;
+  }
+
+  const parsed = previewSchema.safeParse(body.value);
 
   if (!parsed.success) {
     return NextResponse.json({ error: "Invalid preview" }, { status: 400 });

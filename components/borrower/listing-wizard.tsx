@@ -138,20 +138,13 @@ export function ListingWizard({
 
   useEffect(() => {
     const existingSession =
-      localStorage.getItem(`${storageKey}:session`) ?? crypto.randomUUID();
-    localStorage.setItem(`${storageKey}:session`, existingSession);
+      sessionStorage.getItem(`${storageKey}:session`) ?? crypto.randomUUID();
+    sessionStorage.setItem(`${storageKey}:session`, existingSession);
     setSessionId(existingSession);
 
-    const saved = localStorage.getItem(`${storageKey}:data`);
-    const savedStep = localStorage.getItem(`${storageKey}:current`);
-
-    if (saved) {
-      setData((current) => ({ ...current, ...JSON.parse(saved) }));
-    }
-
-    if (savedStep) {
-      setStep(Number(savedStep));
-    }
+    localStorage.removeItem(`${storageKey}:session`);
+    localStorage.removeItem(`${storageKey}:data`);
+    localStorage.removeItem(`${storageKey}:current`);
   }, []);
 
   useEffect(() => {
@@ -169,11 +162,6 @@ export function ListingWizard({
   }, [initialResumeToken]);
 
   useEffect(() => {
-    localStorage.setItem(`${storageKey}:data`, JSON.stringify(data));
-    localStorage.setItem(`${storageKey}:current`, String(step));
-  }, [data, step]);
-
-  useEffect(() => {
     if (!sessionId) {
       return;
     }
@@ -187,12 +175,9 @@ export function ListingWizard({
     }
 
     const handle = window.setTimeout(() => {
-      const draftData: WizardData = { ...data };
-      delete draftData.address;
       void fetch("/api/borrower/wizard-draft", {
         body: JSON.stringify({
-          data: draftData,
-          phone: data.phone,
+          data: listingDraftPayload(data),
           resumeToken,
           state: data.state,
         }),
@@ -358,8 +343,7 @@ export function ListingWizard({
       }
 
       setListingResult(listing);
-      localStorage.removeItem(`${storageKey}:data`);
-      localStorage.removeItem(`${storageKey}:current`);
+      sessionStorage.removeItem(`${storageKey}:session`);
       void captureFunnel("wizard_step_completed", "phone_otp");
       setStep(12);
     } finally {
@@ -634,6 +618,23 @@ export function ListingWizard({
       ) : null}
     </WizardShell>
   );
+}
+
+function listingDraftPayload(data: WizardData): Partial<WizardData> {
+  return {
+    balanceAmount: data.balanceAmount,
+    county: data.county,
+    creditBandStated: data.creditBandStated,
+    currentRateBand: data.currentRateBand,
+    estValueAmount: data.estValueAmount,
+    incomeBandStated: data.incomeBandStated,
+    occupancy: data.occupancy,
+    propertyMatchOk: data.propertyMatchOk,
+    propertyType: data.propertyType,
+    purpose: data.purpose,
+    state: data.state,
+    timeline: data.timeline,
+  };
 }
 
 function ChoiceGrid({

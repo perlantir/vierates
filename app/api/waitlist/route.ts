@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
+import {
+  enforceRateLimit,
+  readJsonBody,
+  rejectLargePayload,
+} from "@/lib/http/request-guards";
 import { prisma } from "@/lib/prisma";
 
 const waitlistSchema = z.object({
@@ -9,7 +14,29 @@ const waitlistSchema = z.object({
 });
 
 export async function POST(request: Request) {
-  const parsed = waitlistSchema.safeParse(await request.json());
+  const payloadTooLarge = rejectLargePayload(request, 8_192);
+
+  if (payloadTooLarge) {
+    return payloadTooLarge;
+  }
+
+  const rateLimited = await enforceRateLimit(request, {
+    limit: 20,
+    prefix: "public:waitlist",
+    window: "1 h",
+  });
+
+  if (rateLimited) {
+    return rateLimited;
+  }
+
+  const body = await readJsonBody(request);
+
+  if (!body.ok) {
+    return body.response;
+  }
+
+  const parsed = waitlistSchema.safeParse(body.value);
 
   if (!parsed.success) {
     return NextResponse.json(

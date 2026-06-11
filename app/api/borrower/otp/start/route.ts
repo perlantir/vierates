@@ -7,6 +7,12 @@ import {
   normalizePhone,
   startOtpChallenge,
 } from "@/lib/borrower/wizard";
+import { IntegrationUnavailableError } from "@/lib/integrations/stub-guard";
+import {
+  enforceRateLimit,
+  readJsonBody,
+  rejectLargePayload,
+} from "@/lib/http/request-guards";
 import { prisma } from "@/lib/prisma";
 
 const startSchema = z.object({
@@ -14,7 +20,29 @@ const startSchema = z.object({
 });
 
 export async function POST(request: Request) {
-  const parsed = startSchema.safeParse(await request.json());
+  const payloadTooLarge = rejectLargePayload(request, 8_192);
+
+  if (payloadTooLarge) {
+    return payloadTooLarge;
+  }
+
+  const rateLimited = await enforceRateLimit(request, {
+    limit: 20,
+    prefix: "public:otp-start",
+    window: "15 m",
+  });
+
+  if (rateLimited) {
+    return rateLimited;
+  }
+
+  const body = await readJsonBody(request);
+
+  if (!body.ok) {
+    return body.response;
+  }
+
+  const parsed = startSchema.safeParse(body.value);
 
   if (!parsed.success) {
     return NextResponse.json({ error: "Invalid phone" }, { status: 400 });
@@ -36,6 +64,13 @@ export async function POST(request: Request) {
     if (error instanceof BorrowerFlowError) {
       return NextResponse.json(
         { code: error.code, error: error.message },
+        { status: error.status },
+      );
+    }
+
+    if (error instanceof IntegrationUnavailableError) {
+      return NextResponse.json(
+        { code: error.code, error: "Verification provider unavailable" },
         { status: error.status },
       );
     }

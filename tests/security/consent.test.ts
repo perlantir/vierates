@@ -13,7 +13,11 @@ import { sha256 } from "../../lib/consent/records";
 import { consentTextForParty } from "../../lib/consent/text";
 import { createListingFromWizard } from "../../lib/borrower/wizard";
 import { scheduleBorrowerAuction } from "../../lib/borrower/verification";
-import { borrowerIdentityVaultData } from "../../lib/security/borrower-identity-vault";
+import {
+  borrowerIdentityVaultData,
+  borrowerPhoneHash,
+  encryptBorrowerIdentityField,
+} from "../../lib/security/borrower-identity-vault";
 import { setValidTestEnv } from "../helpers/env";
 
 setValidTestEnv();
@@ -61,7 +65,8 @@ describe("security: consent integrity", () => {
         codeHash: "x".repeat(64),
         expiresAt: new Date(Date.now() + 60_000),
         ip: "198.51.100.80",
-        phone,
+        phone: encryptBorrowerIdentityField("phone", phone),
+        phoneHash: borrowerPhoneHash(phone),
         status: "VERIFIED",
       },
     });

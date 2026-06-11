@@ -29,7 +29,7 @@ export function WizardShell({
 
   useEffect(() => {
     if (storageKey) {
-      localStorage.setItem(`${storageKey}:step`, String(currentStep));
+      sessionStorage.setItem(`${storageKey}:step`, String(currentStep));
     }
   }, [currentStep, storageKey]);
 

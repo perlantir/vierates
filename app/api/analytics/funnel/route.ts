@@ -2,35 +2,67 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { captureBorrowerFunnelEvent } from "@/lib/borrower/wizard";
+import {
+  enforceRateLimit,
+  readJsonBody,
+  rejectLargePayload,
+} from "@/lib/http/request-guards";
 import { getPostHogClient } from "@/lib/observability/posthog";
 import { prisma } from "@/lib/prisma";
 
 const funnelSchema = z.object({
   event: z.enum(["wizard_step_viewed", "wizard_step_completed"]),
   metadata: z.record(z.string(), z.unknown()).optional(),
-  sessionId: z.string().min(8),
-  step: z.string().min(1),
-  userId: z.string().optional(),
+  sessionId: z.string().min(8).max(128),
+  step: z.string().min(1).max(80),
+  userId: z.string().max(128).optional(),
 });
 
-export async function POST(request: Request) {
-  let body: unknown;
+const allowedMetadataKeys = new Set([
+  "field",
+  "gated",
+  "propertyMatchOk",
+  "state",
+]);
 
-  try {
-    body = await request.json();
-  } catch {
+export async function POST(request: Request) {
+  const payloadTooLarge = rejectLargePayload(request, 16_384);
+
+  if (payloadTooLarge) {
+    return payloadTooLarge;
+  }
+
+  const rateLimited = await enforceRateLimit(request, {
+    limit: 120,
+    prefix: "public:funnel",
+    window: "1 h",
+  });
+
+  if (rateLimited) {
+    return rateLimited;
+  }
+
+  const body = await readJsonBody(request);
+
+  if (!body.ok) {
     return NextResponse.json({ error: "Invalid event" }, { status: 400 });
   }
 
-  const parsed = funnelSchema.safeParse(body);
+  const parsed = funnelSchema.safeParse(body.value);
 
   if (!parsed.success) {
     return NextResponse.json({ error: "Invalid event" }, { status: 400 });
   }
 
+  if (JSON.stringify(parsed.data.metadata ?? {}).length > 4096) {
+    return NextResponse.json({ error: "Invalid event" }, { status: 400 });
+  }
+
+  const metadata = sanitizeMetadata(parsed.data.metadata ?? {});
+
   await captureBorrowerFunnelEvent(prisma, {
     event: parsed.data.event,
-    metadata: JSON.parse(JSON.stringify(parsed.data.metadata ?? {})),
+    metadata,
     sessionId: parsed.data.sessionId,
     step: parsed.data.step,
     userId: parsed.data.userId,
@@ -42,7 +74,7 @@ export async function POST(request: Request) {
       event: parsed.data.event,
       properties: {
         step: parsed.data.step,
-        ...(parsed.data.metadata ?? {}),
+        ...metadata,
       },
     });
   } catch {
@@ -50,4 +82,21 @@ export async function POST(request: Request) {
   }
 
   return NextResponse.json({ ok: true });
+}
+
+function sanitizeMetadata(metadata: Record<string, unknown>) {
+  const sanitized: Record<string, string | number | boolean> = {};
+
+  for (const [key, value] of Object.entries(metadata)) {
+    if (
+      !allowedMetadataKeys.has(key) ||
+      !["boolean", "number", "string"].includes(typeof value)
+    ) {
+      continue;
+    }
+
+    sanitized[key] = value as string | number | boolean;
+  }
+
+  return sanitized;
 }

@@ -27,7 +27,7 @@ export async function getCurrentLenderOrgId(): Promise<string | null> {
   }
 
   if (!demoAuthFallbackAllowed()) {
-    const session = await auth();
+    const session = await safeAuth();
 
     if (!session.userId) {
       return null;
@@ -111,7 +111,7 @@ export async function getCurrentLenderUser(): Promise<CurrentLenderUser | null> 
   }
 
   if (!demoAuthFallbackAllowed()) {
-    const session = await auth();
+    const session = await safeAuth();
 
     if (!session.userId) {
       return null;
@@ -164,4 +164,14 @@ function demoAuthFallbackAllowed(): boolean {
     process.env.NODE_ENV !== "production" &&
     process.env.VERCEL_ENV !== "production"
   );
+}
+
+async function safeAuth(): ReturnType<typeof auth> {
+  try {
+    return await auth();
+  } catch {
+    return {
+      userId: null,
+    } as Awaited<ReturnType<typeof auth>>;
+  }
 }

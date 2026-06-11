@@ -4,6 +4,11 @@ import { z } from "zod";
 
 import { sha256 } from "@/lib/consent/records";
 import { consentTextForParty } from "@/lib/consent/text";
+import {
+  enforceRateLimit,
+  readJsonBody,
+  rejectLargePayload,
+} from "@/lib/http/request-guards";
 import { prisma } from "@/lib/prisma";
 
 const applicationSchema = z.object({
@@ -18,7 +23,29 @@ const applicationSchema = z.object({
 });
 
 export async function POST(request: Request) {
-  const parsed = applicationSchema.safeParse(await request.json());
+  const payloadTooLarge = rejectLargePayload(request, 16_384);
+
+  if (payloadTooLarge) {
+    return payloadTooLarge;
+  }
+
+  const rateLimited = await enforceRateLimit(request, {
+    limit: 10,
+    prefix: "public:lender-applications",
+    window: "1 h",
+  });
+
+  if (rateLimited) {
+    return rateLimited;
+  }
+
+  const body = await readJsonBody(request);
+
+  if (!body.ok) {
+    return body.response;
+  }
+
+  const parsed = applicationSchema.safeParse(body.value);
 
   if (!parsed.success) {
     return NextResponse.json({ error: "Invalid application" }, { status: 400 });

@@ -39,7 +39,7 @@ export async function getCurrentBorrowerUserId(): Promise<string | null> {
     return newestListing?.borrowerUserId ?? null;
   }
 
-  const session = await auth();
+  const session = await safeAuth();
 
   if (!session.userId) {
     return null;
@@ -51,6 +51,16 @@ export async function getCurrentBorrowerUserId(): Promise<string | null> {
   });
 
   return user?.role === Role.BORROWER ? user.id : null;
+}
+
+async function safeAuth(): ReturnType<typeof auth> {
+  try {
+    return await auth();
+  } catch {
+    return {
+      userId: null,
+    } as Awaited<ReturnType<typeof auth>>;
+  }
 }
 
 function demoAuthFallbackAllowed(): boolean {

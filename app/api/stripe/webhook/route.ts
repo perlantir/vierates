@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
+import { rejectLargePayload } from "@/lib/http/request-guards";
 import {
   BILLING_REASONS,
   BillingServiceError,
@@ -18,6 +19,12 @@ const stripeEventSchema = z.object({
 });
 
 export async function POST(request: Request) {
+  const payloadTooLarge = rejectLargePayload(request, 1_048_576);
+
+  if (payloadTooLarge) {
+    return payloadTooLarge;
+  }
+
   const rateLimit = await checkFixedWindowRateLimit({
     key: requestIp(request),
     limit: 120,

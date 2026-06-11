@@ -46,7 +46,7 @@ export function VerificationFlow({ listing }: VerificationFlowProps) {
   );
 
   useEffect(() => {
-    const savedStep = localStorage.getItem(`${storageKey}:step`);
+    const savedStep = sessionStorage.getItem(`${storageKey}:step`);
 
     if (savedStep) {
       setStep(Number(savedStep));
@@ -54,7 +54,7 @@ export function VerificationFlow({ listing }: VerificationFlowProps) {
   }, []);
 
   useEffect(() => {
-    localStorage.setItem(`${storageKey}:step`, String(step));
+    sessionStorage.setItem(`${storageKey}:step`, String(step));
   }, [step]);
 
   if (!listing) {
@@ -151,7 +151,7 @@ export function VerificationFlow({ listing }: VerificationFlowProps) {
 
     setAuction(result);
     setStep(5);
-    localStorage.removeItem(`${storageKey}:step`);
+    sessionStorage.removeItem(`${storageKey}:step`);
   }
 
   return (

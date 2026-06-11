@@ -6,7 +6,10 @@ import {
   startOtpChallenge,
   verifyOtpChallenge,
 } from "../lib/borrower/wizard";
-import { borrowerIdentityVaultData } from "../lib/security/borrower-identity-vault";
+import {
+  borrowerIdentityVaultData,
+  borrowerPhoneHash,
+} from "../lib/security/borrower-identity-vault";
 import { setValidTestEnv } from "./helpers/env";
 
 setValidTestEnv();
@@ -17,7 +20,16 @@ const testPhones = ["3125559901", "3125559902", "3125559903", "3125559904"];
 describe("borrower OTP abuse controls", () => {
   beforeEach(async () => {
     await prisma.otpChallenge.deleteMany({
-      where: { phone: { in: testPhones } },
+      where: {
+        OR: [
+          { phone: { in: testPhones } },
+          {
+            phoneHash: {
+              in: testPhones.map((phone) => borrowerPhoneHash(phone)),
+            },
+          },
+        ],
+      },
     });
     await prisma.user.deleteMany({
       where: {
@@ -55,6 +67,20 @@ describe("borrower OTP abuse controls", () => {
     ).rejects.toMatchObject({
       code: "OTP_RATE_LIMITED",
     } satisfies Partial<BorrowerFlowError>);
+  });
+
+  it("stores OTP challenge phone values encrypted with a blind index", async () => {
+    const challenge = await startOtpChallenge(prisma, {
+      ip: "198.51.100.15",
+      phone: testPhones[0],
+    });
+    const raw = await prisma.otpChallenge.findUniqueOrThrow({
+      where: { id: challenge.id },
+    });
+
+    expect(raw.phone).not.toBe(testPhones[0]);
+    expect(raw.phone).toMatch(/^v1:/);
+    expect(raw.phoneHash).toBe(borrowerPhoneHash(testPhones[0]));
   });
 
   it("enforces one active listing per phone", async () => {

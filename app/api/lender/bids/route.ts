@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { getCurrentLenderUser } from "@/lib/lender/current";
+import { readJsonBody, rejectLargePayload } from "@/lib/http/request-guards";
 import { prisma } from "@/lib/prisma";
 import { checkFixedWindowRateLimit } from "@/lib/rate-limit";
 import { AuctionServiceError, submitBid } from "@/lib/services/auction";
@@ -26,11 +27,24 @@ const bidSchema = z.object({
 
 export async function POST(request: Request) {
   const lenderUser = await getCurrentLenderUser();
-  const parsed = bidSchema.safeParse(await request.json());
 
   if (!lenderUser) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+
+  const payloadTooLarge = rejectLargePayload(request, 16_384);
+
+  if (payloadTooLarge) {
+    return payloadTooLarge;
+  }
+
+  const body = await readJsonBody(request);
+
+  if (!body.ok) {
+    return body.response;
+  }
+
+  const parsed = bidSchema.safeParse(body.value);
 
   if (!parsed.success) {
     return NextResponse.json({ error: "Invalid bid" }, { status: 400 });

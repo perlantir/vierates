@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { getCurrentBorrowerUserId } from "@/lib/borrower/current";
+import { readJsonBody, rejectLargePayload } from "@/lib/http/request-guards";
 import { prisma } from "@/lib/prisma";
 import { AuctionServiceError, pickWinningBid } from "@/lib/services/auction";
 
@@ -15,12 +16,25 @@ const pickSchema = z.object({
 
 export async function POST(request: Request, context: PickContext) {
   const borrowerUserId = await getCurrentBorrowerUserId();
-  const parsed = pickSchema.safeParse(await request.json());
   const { auctionId } = await context.params;
 
   if (!borrowerUserId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+
+  const payloadTooLarge = rejectLargePayload(request, 8_192);
+
+  if (payloadTooLarge) {
+    return payloadTooLarge;
+  }
+
+  const body = await readJsonBody(request);
+
+  if (!body.ok) {
+    return body.response;
+  }
+
+  const parsed = pickSchema.safeParse(body.value);
 
   if (!parsed.success) {
     return NextResponse.json({ error: "Invalid pick" }, { status: 400 });

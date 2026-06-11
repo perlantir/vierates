@@ -15,6 +15,8 @@ import { assertTwilioStubAllowed } from "@/lib/integrations/twilio";
 import {
   borrowerIdentityVaultData,
   borrowerPhoneHash,
+  decryptBorrowerIdentityField,
+  encryptBorrowerIdentityField,
 } from "@/lib/security/borrower-identity-vault";
 
 const activeListingStatuses = [
@@ -171,7 +173,6 @@ export async function saveListingDraft(
   db: PrismaClient,
   input: {
     data: Prisma.InputJsonValue;
-    phone?: string;
     resumeToken?: string;
     state?: string;
   },
@@ -182,12 +183,14 @@ export async function saveListingDraft(
     where: { resumeToken },
     update: {
       data: input.data,
-      phone: input.phone,
+      email: null,
+      phone: null,
       state: input.state,
     },
     create: {
       data: input.data,
-      phone: input.phone,
+      email: null,
+      phone: null,
       resumeToken,
       state: input.state,
     },
@@ -216,7 +219,7 @@ export async function startOtpChallenge(
   const recentAttempts = await db.otpChallenge.count({
     where: {
       createdAt: { gte: windowStart },
-      phone,
+      phoneHash: borrowerPhoneHash(phone),
     },
   });
 
@@ -236,7 +239,8 @@ export async function startOtpChallenge(
       codeHash: sha256(code),
       expiresAt: new Date(now.getTime() + 10 * 60 * 1000),
       ip: input.ip,
-      phone,
+      phone: encryptBorrowerIdentityField("phone", phone),
+      phoneHash: borrowerPhoneHash(phone),
     },
   });
 
@@ -261,6 +265,7 @@ export async function verifyOtpChallenge(
     const challenge = await tx.otpChallenge.findUnique({
       where: { id: input.challengeId },
     });
+    const phone = challenge ? readOtpChallengePhone(challenge.phone) : "";
 
     if (!challenge || challenge.status !== "PENDING") {
       throw new BorrowerFlowError(
@@ -295,10 +300,10 @@ export async function verifyOtpChallenge(
     }
 
     const user = await tx.user.upsert({
-      where: { clerkId: `borrower-phone:${challenge.phone}` },
+      where: { clerkId: `borrower-phone:${phone}` },
       update: { role: Role.BORROWER },
       create: {
-        clerkId: `borrower-phone:${challenge.phone}`,
+        clerkId: `borrower-phone:${phone}`,
         role: Role.BORROWER,
       },
     });
@@ -307,19 +312,19 @@ export async function verifyOtpChallenge(
       where: { userId: user.id },
       update: {
         ...borrowerIdentityVaultData({
-          email: `${challenge.phone}@borrower.vierates.local`,
+          email: `${phone}@borrower.vierates.local`,
           firstName: "Anonymous",
           lastName: "Borrower",
-          phone: challenge.phone,
+          phone,
         }),
         phoneVerifiedAt: now,
       },
       create: {
         ...borrowerIdentityVaultData({
-          email: `${challenge.phone}@borrower.vierates.local`,
+          email: `${phone}@borrower.vierates.local`,
           firstName: "Anonymous",
           lastName: "Borrower",
-          phone: challenge.phone,
+          phone,
         }),
         phoneVerifiedAt: now,
         userId: user.id,
@@ -329,7 +334,7 @@ export async function verifyOtpChallenge(
     const consentRecord = await tx.consentRecord.create({
       data: {
         ip: input.ip,
-        textShownSha256: sha256(smsOptInText(challenge.phone)),
+        textShownSha256: sha256(smsOptInText(phone)),
         type: ConsentType.SMS_OPTIN,
         userAgent: input.userAgent,
         userId: user.id,
@@ -344,7 +349,7 @@ export async function verifyOtpChallenge(
     return {
       borrowerUserId: user.id,
       consentRecordId: consentRecord.id,
-      phone: challenge.phone,
+      phone,
     };
   });
 }
@@ -367,8 +372,9 @@ export async function createListingFromWizard(
     );
   }
 
+  const phone = readOtpChallengePhone(challenge.phone);
   const borrowerIdentity = await db.borrowerIdentity.findFirst({
-    where: { phoneHash: borrowerPhoneHash(challenge.phone) },
+    where: { phoneHash: borrowerPhoneHash(phone) },
     select: { userId: true },
   });
 
@@ -392,7 +398,7 @@ export async function createListingFromWizard(
     );
   }
 
-  await assertNoActiveListingForPhone(db, challenge.phone);
+  await assertNoActiveListingForPhone(db, phone);
 
   return db.$transaction(async (tx) => {
     const listing = await tx.listing.create({
@@ -431,6 +437,12 @@ export async function createListingFromWizard(
 
     return listing;
   });
+}
+
+function readOtpChallengePhone(value: string): string {
+  return value.startsWith("v1:")
+    ? decryptBorrowerIdentityField("phone", value)
+    : value;
 }
 
 export async function captureBorrowerFunnelEvent(

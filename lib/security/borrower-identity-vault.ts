@@ -81,7 +81,7 @@ export function normalizePhone(phone: string): string {
   return phone.replace(/\D/g, "");
 }
 
-function encryptBorrowerIdentityField(
+export function encryptBorrowerIdentityField(
   field: IdentityField,
   plaintext: string,
 ): string {

@@ -2,6 +2,11 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { BorrowerFlowError, verifyOtpChallenge } from "@/lib/borrower/wizard";
+import {
+  enforceRateLimit,
+  readJsonBody,
+  rejectLargePayload,
+} from "@/lib/http/request-guards";
 import { prisma } from "@/lib/prisma";
 
 const verifySchema = z.object({
@@ -10,7 +15,29 @@ const verifySchema = z.object({
 });
 
 export async function POST(request: Request) {
-  const parsed = verifySchema.safeParse(await request.json());
+  const payloadTooLarge = rejectLargePayload(request, 8_192);
+
+  if (payloadTooLarge) {
+    return payloadTooLarge;
+  }
+
+  const rateLimited = await enforceRateLimit(request, {
+    limit: 30,
+    prefix: "public:otp-verify",
+    window: "15 m",
+  });
+
+  if (rateLimited) {
+    return rateLimited;
+  }
+
+  const body = await readJsonBody(request);
+
+  if (!body.ok) {
+    return body.response;
+  }
+
+  const parsed = verifySchema.safeParse(body.value);
 
   if (!parsed.success) {
     return NextResponse.json({ error: "Invalid code" }, { status: 400 });
