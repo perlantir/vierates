@@ -22,19 +22,21 @@ test("lender onboarding creates a pending org with coverage and invite", async (
   await page
     .getByLabel("Organization legal name")
     .fill("Prompt Four Lending LLC");
-  await page.getByRole("button", { name: "Next" }).click();
+  await page
+    .getByRole("button", { name: "Save organization legal name" })
+    .click();
   await page.getByLabel("DBA").fill("Prompt Four");
-  await page.getByRole("button", { name: "Next" }).click();
+  await page.getByRole("button", { name: "Save dba" }).click();
   await page.getByLabel("NMLS ID").fill(nmlsId);
-  await page.getByRole("button", { name: "Next" }).click();
-  await page.getByRole("button", { name: "Next" }).click();
-  await page.getByRole("button", { name: "Next" }).click();
-  await page.getByRole("button", { name: "Next" }).click();
-  await page.getByRole("button", { name: "Next" }).click();
+  await page.getByRole("button", { name: "Save nmls id" }).click();
+  await page.getByRole("button", { name: "Save selection" }).click();
+  await page.getByRole("button", { name: "Save coverage limits" }).click();
+  await page.getByRole("button", { name: "Save selection" }).click();
+  await page.getByRole("button", { name: "Save loan range" }).click();
   await page.getByLabel("Org admin email").fill(adminEmail);
   await page.getByLabel("Invite LO email").fill(inviteEmail);
   await page.getByRole("button", { exact: true, name: "PRO" }).click();
-  await page.getByRole("button", { name: "Submit for approval" }).click();
+  await page.getByRole("button", { name: "Send for admin approval" }).click();
 
   await expect(
     page.getByText("Submitted for admin approval. Status: PENDING."),

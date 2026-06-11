@@ -54,9 +54,7 @@ export function BidIndexTable({ rows }: { rows: BidIndexRow[] }) {
             >
               <td className="p-3 font-semibold">{row.creditBand}</td>
               <td className="vr-data p-3 text-right">{row.medianApr}</td>
-              <td className="vr-data p-3 text-right text-paddle">
-                {row.bidCount}
-              </td>
+              <td className="vr-data p-3 text-right">{row.bidCount}</td>
               <td className="vr-data p-3 text-right">{row.spread}</td>
               <td className="p-3 text-slate">{row.updated}</td>
             </tr>

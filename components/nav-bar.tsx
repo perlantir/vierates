@@ -116,7 +116,7 @@ export function NavBar() {
             type="button"
           />
           <div
-            className="absolute inset-x-0 top-full z-30 border-b border-line bg-bone shadow-[0_18px_44px_rgba(14,22,38,0.14)] md:hidden"
+            className="absolute inset-x-0 top-full z-30 border-b border-line bg-bone shadow-[0_18px_44px_rgb(7_33_27_/_14%)] md:hidden"
             id="mobile-navigation"
           >
             <div className="vr-frame max-h-[calc(100dvh-4rem)] overflow-y-auto pb-[calc(1rem+env(safe-area-inset-bottom))] pt-3">

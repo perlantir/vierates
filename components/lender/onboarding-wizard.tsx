@@ -162,7 +162,7 @@ export function LenderOnboardingWizard() {
             suffix=" bp"
             value={data.ltvMaxBp}
           />
-          <Button onClick={() => setStep(6)}>Next</Button>
+          <Button onClick={() => setStep(6)}>Save coverage limits</Button>
         </div>
       ) : null}
       {step === 6 ? (
@@ -206,7 +206,7 @@ export function LenderOnboardingWizard() {
             step={50000}
             value={data.loanMax}
           />
-          <Button onClick={() => setStep(8)}>Next</Button>
+          <Button onClick={() => setStep(8)}>Save loan range</Button>
         </div>
       ) : null}
       {step === 8 ? (
@@ -242,7 +242,7 @@ export function LenderOnboardingWizard() {
             }
             onClick={() => void submit()}
           >
-            Submit for approval
+            Send for admin approval
           </Button>
           {message ? (
             <p className="rounded-ui border border-line bg-bone p-3 text-sm text-slate">
@@ -275,7 +275,7 @@ function TextStep({
         disabled={!optional && draft.length < 2}
         onClick={() => onNext(draft)}
       >
-        Next
+        {nextLabelForTextStep(label)}
       </Button>
     </div>
   );
@@ -294,7 +294,7 @@ function TextInput({
     <label className="grid gap-2 text-sm font-semibold text-ink">
       {label}
       <input
-        className="min-h-11 rounded-ui border border-line bg-paper px-3 text-base font-normal"
+        className="min-h-14 rounded-ui border border-line bg-paper px-3 text-base font-normal"
         onChange={(event) => onChange(event.target.value)}
         value={value ?? ""}
       />
@@ -337,11 +337,15 @@ function ToggleGrid({
       </div>
       {onNext ? (
         <Button disabled={selected.length === 0} onClick={onNext}>
-          Next
+          Save selection
         </Button>
       ) : null}
     </div>
   );
+}
+
+function nextLabelForTextStep(label: string): string {
+  return `Save ${label.toLowerCase()}`;
 }
 
 function titleForStep(step: number): string {

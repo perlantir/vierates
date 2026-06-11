@@ -18,7 +18,7 @@ export function LenderCard({
   return (
     <article className="vr-card flex flex-col gap-4 p-5">
       <div>
-        <h3 className="font-display text-2xl font-semibold text-ink">
+        <h3 className="font-sans text-2xl font-semibold text-ink">
           {legalName}
         </h3>
         <Link

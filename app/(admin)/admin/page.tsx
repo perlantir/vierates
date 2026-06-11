@@ -57,7 +57,7 @@ export default async function AdminPage() {
       <main className="vr-section min-h-screen bg-bone">
         <div className="vr-frame grid gap-6">
           <header className="border-b border-line pb-6">
-            <h1 className="font-display text-4xl font-semibold text-ink md:text-5xl">
+            <h1 className="font-sans text-4xl font-semibold text-ink md:text-5xl">
               Admin console
             </h1>
             <p className="mt-3 max-w-2xl text-slate">
@@ -147,7 +147,7 @@ function AdminPanel({
 }) {
   return (
     <section className="vr-card p-5">
-      <h2 className="font-display text-2xl font-semibold text-ink">{title}</h2>
+      <h2 className="font-sans text-2xl font-semibold text-ink">{title}</h2>
       <div className="mt-4 grid gap-3">{children}</div>
     </section>
   );

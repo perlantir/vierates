@@ -6,6 +6,9 @@ const e2eEnv = {
   DATABASE_URL:
     process.env.DATABASE_URL ??
     "postgresql://vierates:vierates@localhost:54329/vierates?schema=public",
+  BORROWER_IDENTITY_KEY:
+    process.env.BORROWER_IDENTITY_KEY ??
+    "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
   NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY:
     process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ?? "pk_test_vierates_e2e",
   CLERK_SECRET_KEY: process.env.CLERK_SECRET_KEY ?? "sk_test_vierates_e2e",

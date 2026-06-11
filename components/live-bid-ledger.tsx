@@ -85,7 +85,7 @@ export function LiveBidLedger({
         ].join(" ")}
       >
         <div className="flex items-center gap-2">
-          <span className="h-2 w-2 rounded-full bg-funded shadow-[0_0_0_3px_rgba(23,126,99,0.18)]" />
+          <span className="h-2 w-2 rounded-full bg-funded shadow-[0_0_0_3px_var(--verified-tint)]" />
           <h2 className="text-sm font-semibold">{title}</h2>
         </div>
         {windowLabel ? (

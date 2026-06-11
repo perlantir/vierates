@@ -30,20 +30,27 @@ test("borrower completes the listing wizard and writes SMS consent", async ({
   await page.getByRole("button", { name: "Match property" }).click();
   await page.getByRole("button", { name: "Single-family" }).click();
   await page.getByRole("button", { name: "I live there" }).click();
-  await page.getByRole("button", { name: "Next" }).click();
-  await page.getByRole("button", { name: "Next" }).click();
+  await page.getByRole("button", { name: "Save estimated value" }).click();
+  await page.getByRole("button", { name: "Save loan balance" }).click();
   await page.getByRole("button", { name: "6.5-7%" }).click();
   await page.getByRole("button", { name: "Good 700-739" }).click();
   await page.getByRole("button", { name: "$150k-$200k" }).click();
   await page.getByRole("button", { name: "ASAP" }).click();
   await page.getByLabel("Mobile phone").fill(phone);
+  await page.getByRole("checkbox").check();
   await page.getByRole("button", { name: "Send code" }).click();
-  await page.getByLabel("Verification code").fill(await demoCodeFromPage(page));
-  await page.getByRole("button", { name: "Verify and list me" }).click();
+  await page
+    .getByRole("textbox", { name: "Verification code" })
+    .fill(await demoCodeFromPage(page));
+  await page
+    .getByRole("button", { name: "Create my anonymous listing" })
+    .click();
 
   await expect(page.getByTestId("listing-done")).toBeVisible();
   await expect(
-    page.getByText("You are listed. Here is your market."),
+    page
+      .getByTestId("listing-done")
+      .getByRole("heading", { name: "You're listed. Here's your market." }),
   ).toBeVisible();
 
   const identity = await prisma.borrowerIdentity.findFirst({

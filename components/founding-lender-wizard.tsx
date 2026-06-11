@@ -167,7 +167,7 @@ export function FoundingLenderWizard() {
             disabled={!canGoNext}
             onClick={() => setStep((value) => value + 1)}
           >
-            Next
+            {nextLabelForStep(step)}
           </Button>
         ) : (
           <Button
@@ -204,7 +204,7 @@ function Field({
       <span className="text-sm font-semibold text-ink">{label}</span>
       <input
         className={[
-          "mt-2 min-h-11 w-full rounded-ui border border-line bg-paper px-4 text-base text-ink placeholder:text-slate",
+          "mt-2 min-h-14 w-full rounded-ui border border-line bg-paper px-4 text-base text-ink placeholder:text-slate",
           data ? "vr-data" : "",
         ].join(" ")}
         onChange={(event) => onChange(event.target.value)}
@@ -222,4 +222,15 @@ function titleForStep(step: number) {
   if (step === 3) return "Where are you licensed?";
   if (step === 4) return "Who should we contact?";
   return "Confirm named consent";
+}
+
+function nextLabelForStep(step: number): string {
+  return (
+    [
+      "Save organization name",
+      "Save NMLS ID",
+      "Save licensed states",
+      "Save contact details",
+    ][step - 1] ?? "Save step"
+  );
 }

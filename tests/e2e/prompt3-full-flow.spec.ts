@@ -29,21 +29,54 @@ test("full borrower flow writes all prompt 3 consents and schedules auction", as
   await page.getByRole("button", { name: "Match property" }).click();
   await page.getByRole("button", { name: "Single-family" }).click();
   await page.getByRole("button", { name: "I live there" }).click();
-  await page.getByRole("button", { name: "Next" }).click();
-  await page.getByRole("button", { name: "Next" }).click();
+  await page.getByRole("button", { name: "Save estimated value" }).click();
+  await page.getByRole("button", { name: "Save loan balance" }).click();
   await page.getByRole("button", { name: "6.5-7%" }).click();
   await page.getByRole("button", { name: "Excellent 740+" }).click();
   await page.getByRole("button", { name: "$200k+" }).click();
   await page.getByRole("button", { name: "ASAP" }).click();
   await page.getByLabel("Mobile phone").fill(phone);
+  await page.getByRole("checkbox").check();
   await page.getByRole("button", { name: "Send code" }).click();
-  await page.getByLabel("Verification code").fill(await demoCodeFromPage(page));
-  await page.getByRole("button", { name: "Verify and list me" }).click();
+  await page
+    .getByRole("textbox", { name: "Verification code" })
+    .fill(await demoCodeFromPage(page));
+  await page
+    .getByRole("button", { name: "Create my anonymous listing" })
+    .click();
   await expect(page.getByTestId("listing-done")).toBeVisible();
 
   const createdIdentity = await prisma.borrowerIdentity.findFirstOrThrow({
     select: { userId: true },
     where: { phoneHash: borrowerPhoneHash(phone) },
+  });
+  const suffix = String(Date.now());
+  const lender = await prisma.lenderOrg.create({
+    data: {
+      legalName: `000 Full Flow Lender ${suffix}`,
+      nmlsId: `92${suffix.slice(-6)}`,
+      statesLicensed: ["IL"],
+      status: "APPROVED",
+    },
+  });
+  await prisma.coverageBox.create({
+    data: {
+      ficoMin: 640,
+      lenderOrgId: lender.id,
+      loanMax: 900000,
+      loanMin: 100000,
+      ltvMaxBp: 9000,
+      products: ["30Y_FIXED"],
+      purposes: ["REFINANCE"],
+      states: ["IL"],
+    },
+  });
+  await prisma.creditWallet.create({
+    data: {
+      balance: 3,
+      lenderOrgId: lender.id,
+      plan: "TEST",
+    },
   });
   await page.context().addCookies([
     {
@@ -56,13 +89,13 @@ test("full borrower flow writes all prompt 3 consents and schedules auction", as
 
   await page.goto("/app/lenders");
   await page
+    .getByTestId(`lender-option-${lender.id}`)
     .getByRole("button", { name: "Request introduction" })
-    .first()
     .click();
-  await page.getByRole("checkbox").check();
-  await page
+  const consentPanel = page.getByTestId("connect-consent");
+  await consentPanel.getByRole("checkbox").check();
+  await consentPanel
     .getByRole("button", { name: "Request introduction" })
-    .last()
     .click();
   await expect(page.getByText("Introduction delivered.")).toBeVisible();
 

@@ -27,7 +27,7 @@ export function FaqAccordion({
           >
             <button
               aria-expanded={isOpen}
-              className="flex w-full items-center justify-between gap-4 bg-transparent px-1 py-5 text-left font-display text-xl font-semibold text-ink"
+              className="flex w-full items-center justify-between gap-4 bg-transparent px-1 py-5 text-left font-sans text-xl font-semibold text-ink"
               onClick={() => setOpen(isOpen ? -1 : index)}
               type="button"
             >

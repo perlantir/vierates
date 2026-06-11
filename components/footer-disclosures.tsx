@@ -16,12 +16,15 @@ export function FooterDisclosures() {
               href="/"
             >
               <Image
-                alt="VieRates"
-                className="h-10 w-auto"
+                alt=""
+                className="h-10 w-10"
                 height={44}
-                src="/assets/wordmark.svg"
-                width={190}
+                src="/assets/logo-mark.svg"
+                width={44}
               />
+              <span className="ml-3 text-2xl font-semibold text-on-ink">
+                VieRates
+              </span>
             </Link>
             <p className="mt-3 max-w-[18rem] text-sm leading-6 text-on-ink-dim">
               Make lenders vie for you.

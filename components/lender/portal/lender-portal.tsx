@@ -170,8 +170,8 @@ export function LenderPortal({
                 className={[
                   "rounded-button px-3 py-2 no-underline",
                   index === 0
-                    ? "bg-paddle text-ink-900"
-                    : "text-on-ink-dim hover:bg-white/10 hover:text-on-ink",
+                    ? "bg-paper text-ink"
+                    : "text-on-ink-dim hover:bg-on-ink/10 hover:text-on-ink",
                 ].join(" ")}
                 href={`#${item.toLowerCase().replaceAll(" ", "-")}`}
                 key={item}

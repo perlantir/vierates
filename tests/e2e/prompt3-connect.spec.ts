@@ -52,12 +52,34 @@ test("borrower requests and closes a lender introduction", async ({ page }) => {
       timeline: "ASAP",
     },
   });
-  const lender = await prisma.lenderOrg.findFirstOrThrow({
-    include: { wallet: true },
-    orderBy: { legalName: "asc" },
-    where: { statesLicensed: { has: "IL" }, status: "APPROVED" },
+  const lender = await prisma.lenderOrg.create({
+    data: {
+      legalName: `000 Connect Test Lender ${suffix}`,
+      nmlsId: `91${String(Date.now()).slice(-6)}`,
+      statesLicensed: ["IL"],
+      status: "APPROVED",
+    },
   });
-  const startingBalance = lender.wallet?.balance ?? 0;
+  await prisma.coverageBox.create({
+    data: {
+      ficoMin: 640,
+      lenderOrgId: lender.id,
+      loanMax: 900000,
+      loanMin: 100000,
+      ltvMaxBp: 9000,
+      products: ["30Y_FIXED"],
+      purposes: ["REFINANCE"],
+      states: ["IL"],
+    },
+  });
+  const wallet = await prisma.creditWallet.create({
+    data: {
+      balance: 3,
+      lenderOrgId: lender.id,
+      plan: "TEST",
+    },
+  });
+  const startingBalance = wallet.balance;
 
   await page.context().addCookies([
     {
@@ -73,19 +95,21 @@ test("borrower requests and closes a lender introduction", async ({ page }) => {
     page.getByRole("heading", { name: "Lender directory" }),
   ).toBeVisible();
   await page
+    .getByTestId(`lender-option-${lender.id}`)
     .getByRole("button", { name: "Request introduction" })
-    .first()
     .click();
-  await expect(page.getByTestId("connect-consent")).toBeVisible();
-  await page.getByRole("checkbox").check();
-  await page
+  const consentPanel = page.getByTestId("connect-consent");
+  await expect(consentPanel).toBeVisible();
+  await consentPanel.getByRole("checkbox").check();
+  await consentPanel
     .getByRole("button", { name: "Request introduction" })
-    .last()
     .click();
 
   await expect(page.getByText("Introduction delivered.")).toBeVisible();
   await expect(
-    page.getByRole("button", { name: "Request introduction" }).first(),
+    page
+      .getByTestId(`lender-option-${lender.id}`)
+      .getByRole("button", { name: "Request introduction" }),
   ).toBeDisabled();
 
   const connection = await prisma.connection.findFirst({

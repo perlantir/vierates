@@ -235,7 +235,11 @@ export function LenderDirectory({ lenders, listing }: LenderDirectoryProps) {
 
         <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {filteredLenders.map((lender) => (
-            <div className="grid gap-3" key={lender.id}>
+            <div
+              className="grid gap-3"
+              data-testid={`lender-option-${lender.id}`}
+              key={lender.id}
+            >
               <LenderCard
                 legalName={lender.legalName}
                 nmlsId={lender.nmlsId}
