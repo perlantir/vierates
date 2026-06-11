@@ -1,3 +1,5 @@
+import { Role } from "@prisma/client";
+import { auth } from "@clerk/nextjs/server";
 import { cookies } from "next/headers";
 
 import { prisma } from "@/lib/prisma";
@@ -17,6 +19,30 @@ export async function getCurrentLenderOrgId(): Promise<string | null> {
         return org.id;
       }
     }
+  }
+
+  if (process.env.DEMO_MODE !== "true") {
+    const session = await auth();
+
+    if (!session.userId) {
+      return null;
+    }
+
+    const lenderUser = await prisma.lenderUser.findFirst({
+      select: {
+        lenderOrgId: true,
+        user: {
+          select: { role: true },
+        },
+      },
+      where: {
+        user: { clerkId: session.userId },
+      },
+    });
+
+    return lenderUser?.user.role === Role.LENDER
+      ? lenderUser.lenderOrgId
+      : null;
   }
 
   const org = await prisma.lenderOrg.findFirst({

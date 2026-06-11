@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
+import { getCurrentAdminUserId } from "@/lib/admin/current";
 import { prisma } from "@/lib/prisma";
 import { resolveDisputeCase } from "@/lib/services/reputation";
 
@@ -13,8 +14,13 @@ const resolveSchema = z.object({
 });
 
 export async function POST(request: Request, context: ResolveContext) {
+  const adminUserId = await getCurrentAdminUserId();
   const parsed = resolveSchema.safeParse(await request.json());
   const { disputeId } = await context.params;
+
+  if (!adminUserId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
   if (!parsed.success) {
     return NextResponse.json({ error: "Invalid resolution" }, { status: 400 });

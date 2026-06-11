@@ -113,6 +113,14 @@ export async function submitBid(db: PrismaClient, input: BidInput) {
       );
     }
 
+    if (lenderUser.lenderOrg.wallet.balance < 1) {
+      throw new AuctionServiceError(
+        "Wallet has insufficient credits.",
+        "INSUFFICIENT_CREDITS",
+        409,
+      );
+    }
+
     const existingBids = await tx.bid.findMany({
       where: {
         auctionId: auction.id,

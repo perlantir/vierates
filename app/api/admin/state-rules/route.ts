@@ -2,6 +2,7 @@ import { StateStatus } from "@prisma/client";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
+import { getCurrentAdminUserId } from "@/lib/admin/current";
 import { prisma } from "@/lib/prisma";
 
 const stateRuleSchema = z.object({
@@ -11,7 +12,12 @@ const stateRuleSchema = z.object({
 });
 
 export async function POST(request: Request) {
+  const adminUserId = await getCurrentAdminUserId();
   const parsed = stateRuleSchema.safeParse(await request.json());
+
+  if (!adminUserId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
   if (!parsed.success) {
     return NextResponse.json({ error: "Invalid state rule" }, { status: 400 });
@@ -29,6 +35,7 @@ export async function POST(request: Request) {
   await prisma.auditLog.create({
     data: {
       action: "admin.state_rule_updated",
+      actorUserId: adminUserId === "e2e-admin" ? undefined : adminUserId,
       entity: "StateRule",
       entityId: stateRule.state,
       meta: {
