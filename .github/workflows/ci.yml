@@ -51,6 +51,20 @@ jobs:
   verify:
     name: Typecheck, lint, tests, build
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: vierates
+          POSTGRES_USER: vierates
+          POSTGRES_PASSWORD: vierates
+        ports:
+          - 54329:5432
+        options: >-
+          --health-cmd "pg_isready -U vierates -d vierates"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -64,6 +78,10 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: Generate Prisma client
         run: pnpm prisma:generate
+      - name: Migrate and seed database
+        run: |
+          pnpm exec prisma migrate deploy
+          pnpm seed
       - name: Typecheck
         run: pnpm typecheck
       - name: Lint
@@ -105,6 +123,7 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: Migrate and seed database
         run: |
+          pnpm prisma:generate
           pnpm exec prisma migrate deploy
           pnpm seed
       - name: Install PostgreSQL client
