@@ -37,3 +37,60 @@ Current expected NO-GO blockers before real borrower data:
   must be recorded;
 - an external human penetration test must be completed, with all
   High/Critical findings fixed.
+
+## Current DNS Action
+
+Vercel currently shows the domain as third-party DNS. Configure either Vercel
+nameservers:
+
+```text
+ns1.vercel-dns.com
+ns2.vercel-dns.com
+```
+
+or set the records Vercel requested during verification:
+
+```text
+A  vierates.com      76.76.21.21
+A  www.vierates.com  76.76.21.21
+```
+
+After DNS propagates, run:
+
+```bash
+pnpm launch:gate
+```
+
+## Production Env Action
+
+Add real Production values in Vercel. Do not commit values to the repo.
+
+```bash
+vercel env add NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY production
+vercel env add CLERK_SECRET_KEY production
+vercel env add CLERK_WEBHOOK_SECRET production
+vercel env add POSTHOG_KEY production
+vercel env add SENTRY_DSN production
+vercel env add NEXT_PUBLIC_SENTRY_DSN production
+vercel env add STRIPE_SECRET_KEY production
+vercel env add STRIPE_WEBHOOK_SECRET production
+vercel env add TWILIO_ACCOUNT_SID production
+vercel env add TWILIO_AUTH_TOKEN production
+vercel env add TWILIO_VERIFY_SERVICE_SID production
+vercel env add PUSHER_APP_ID production
+vercel env add PUSHER_KEY production
+vercel env add PUSHER_SECRET production
+vercel env add PUSHER_CLUSTER production
+vercel env add ARRAY_API_KEY production
+vercel env add TRUV_CLIENT_ID production
+vercel env add TRUV_SECRET production
+vercel env add PERSONA_API_KEY production
+vercel env add ATTOM_KEY production
+vercel env add INNGEST_EVENT_KEY production
+vercel env add INNGEST_SIGNING_KEY production
+vercel env add UPSTASH_REDIS_REST_URL production
+vercel env add UPSTASH_REDIS_REST_TOKEN production
+```
+
+Production `DEMO_MODE` must be set to `false`, and the app must be redeployed
+after values are added.

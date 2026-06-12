@@ -63,6 +63,7 @@ const requiredProductionEnv = [
 ] as const;
 
 const results: CheckResult[] = [];
+const vercelDnsApexIp = "76.76.21.21";
 
 main().catch((error: unknown) => {
   console.error(error instanceof Error ? error.message : String(error));
@@ -165,7 +166,9 @@ async function checkCustomDomainDns() {
     const records = await resolveDomain(domain);
 
     addResult({
-      detail: records.length ? records.join(", ") : "no public DNS records",
+      detail: records.length
+        ? records.join(", ")
+        : `no public DNS records; add A ${domain} ${vercelDnsApexIp} at the registrar or use ns1.vercel-dns.com / ns2.vercel-dns.com`,
       name: `custom-domain DNS ${domain}`,
       status: records.length ? "PASS" : "FAIL",
     });
@@ -198,7 +201,11 @@ function checkVercelProductionEnvNames() {
   );
 
   addResult({
-    detail: missing.length ? `missing: ${missing.join(", ")}` : "all present",
+    detail: missing.length
+      ? `missing: ${missing.join(
+          ", ",
+        )}; add with "vercel env add <NAME> production" and redeploy; DEMO_MODE must be false in Production`
+      : "all present",
     name: "Vercel production env names",
     status: missing.length ? "FAIL" : "PASS",
   });
