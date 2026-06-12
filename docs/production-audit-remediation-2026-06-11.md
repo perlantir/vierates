@@ -49,6 +49,10 @@ data:
 | Production backup proof | Repo has a restore drill and runbook.                                                                                                     | Record provider-level backup encryption and a production-equivalent restore drill.                          |
 | External human pentest  | Automated app/security tests are green.                                                                                                   | Complete the external penetration test and fix all High/Critical findings before real borrower data.        |
 
+The external launch gate is now repeatable with `pnpm launch:gate`; see
+`docs/launch-gate.md`. It is expected to fail until DNS, Production env values,
+counsel approval, backup evidence, and the human pentest are complete.
+
 ## Item-by-Item Production Audit Disposition
 
 | #   | Status                | Evidence                                                                                                                                          |
