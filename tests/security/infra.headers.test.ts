@@ -16,4 +16,14 @@ describe("security: infra headers", () => {
       expect(middleware).toContain(header);
     }
   });
+
+  it("uses a nonce-based script policy without stale vendors", () => {
+    const middleware = readFileSync("middleware.ts", "utf8");
+
+    expect(middleware).toContain("x-nonce");
+    expect(middleware).toContain("'strict-dynamic'");
+    expect(middleware).toContain("`script-src 'self' 'nonce-${nonce}'");
+    expect(middleware).not.toContain("script-src 'self' 'unsafe-inline'");
+    expect(middleware).not.toContain("api.segment.io");
+  });
 });

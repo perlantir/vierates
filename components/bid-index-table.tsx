@@ -36,7 +36,7 @@ export function BidIndexTable({ rows }: { rows: BidIndexRow[] }) {
             ].map(([key, label]) => (
               <th className="border-b border-line p-3" key={key}>
                 <button
-                  className="font-bold"
+                  className="rounded-button font-bold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--focus-ring)]"
                   onClick={() => setSortKey(key as keyof BidIndexRow)}
                   type="button"
                 >

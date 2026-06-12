@@ -40,7 +40,7 @@ export function WizardShell({
         <div className="mb-6 flex items-center justify-between gap-4">
           <button
             aria-label="Go back"
-            className="inline-flex h-11 w-11 items-center justify-center rounded-button border border-line bg-card text-xl font-semibold text-ink disabled:opacity-40"
+            className="inline-flex h-11 w-11 items-center justify-center rounded-button border border-line bg-card text-xl font-semibold text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--focus-ring)] disabled:opacity-40"
             disabled={!onBack}
             onClick={onBack}
             type="button"

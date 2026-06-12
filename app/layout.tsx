@@ -1,29 +1,10 @@
 import type { Metadata, Viewport } from "next";
-import { IBM_Plex_Mono, IBM_Plex_Sans, IBM_Plex_Serif } from "next/font/google";
 
 import { ClientTelemetry } from "@/components/client-telemetry";
 import { JsonLd } from "@/components/json-ld";
 import { absoluteUrl, siteConfig } from "@/lib/site";
 
 import "./globals.css";
-
-const plexSerif = IBM_Plex_Serif({
-  subsets: ["latin"],
-  weight: ["600"],
-  variable: "--font-plex-serif",
-});
-
-const plexSans = IBM_Plex_Sans({
-  subsets: ["latin"],
-  variable: "--font-plex-sans",
-  weight: ["400"],
-});
-
-const plexMono = IBM_Plex_Mono({
-  subsets: ["latin"],
-  weight: ["400"],
-  variable: "--font-plex-mono",
-});
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
@@ -79,10 +60,23 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en"
-      className={`${plexSerif.variable} ${plexSans.variable} ${plexMono.variable}`}
-    >
+    <html lang="en">
+      <head>
+        <link
+          as="font"
+          crossOrigin="anonymous"
+          href="/fonts/ibm-plex-sans-latin-400.woff2"
+          rel="preload"
+          type="font/woff2"
+        />
+        <link
+          as="font"
+          crossOrigin="anonymous"
+          href="/fonts/ibm-plex-serif-latin-600.woff2"
+          rel="preload"
+          type="font/woff2"
+        />
+      </head>
       <body className="font-sans antialiased">
         <a className="vr-skip-link" href="#main-content">
           Skip to content

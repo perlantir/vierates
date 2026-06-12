@@ -118,7 +118,7 @@ export function NavBar() {
             aria-label={
               menuOpen ? "Close navigation menu" : "Open navigation menu"
             }
-            className="inline-flex h-11 w-11 items-center justify-center rounded-button border border-line-strong bg-card text-ink transition-colors duration-150 hover:border-ink"
+            className="inline-flex h-11 w-11 items-center justify-center rounded-button border border-line-strong bg-card text-ink transition-colors duration-150 hover:border-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--focus-ring)]"
             onClick={() => setMenuOpen((open) => !open)}
             type="button"
           >
@@ -187,7 +187,7 @@ function DesktopNavLink({
     <Link
       aria-current={active ? "page" : undefined}
       className={[
-        "py-2 no-underline transition-colors duration-150 hover:text-ink",
+        "rounded-button px-1 py-2 no-underline transition-colors duration-150 hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--focus-ring)]",
         active ? "text-ink" : "text-text-muted",
       ].join(" ")}
       href={href}
@@ -202,7 +202,7 @@ function MobileNavLink({ active, href, label }: NavLink & { active: boolean }) {
     <Link
       aria-current={active ? "page" : undefined}
       className={[
-        "flex min-h-[52px] items-center justify-between rounded-card border px-4 text-base font-semibold no-underline transition-colors duration-150",
+        "flex min-h-[52px] items-center justify-between rounded-card border px-4 text-base font-semibold no-underline transition-colors duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--focus-ring)]",
         active
           ? "border-ink bg-ink text-on-ink"
           : "border-line bg-card text-ink hover:border-line-strong",
@@ -224,7 +224,7 @@ function MobileActionLink({
     <Link
       aria-current={active ? "page" : undefined}
       className={[
-        "inline-flex min-h-12 items-center justify-center rounded-button border px-3 text-center text-sm font-semibold leading-tight no-underline transition-colors duration-150",
+        "inline-flex min-h-12 items-center justify-center rounded-button border px-3 text-center text-sm font-semibold leading-tight no-underline transition-colors duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--focus-ring)]",
         active
           ? "border-ink bg-ink text-on-ink"
           : "border-line-strong bg-transparent text-ink hover:border-ink hover:bg-ink/[0.03]",
