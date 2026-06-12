@@ -128,27 +128,27 @@ export default function HomePage() {
             eyebrow="The old way vs VieRates"
             title="The borrower holds the gavel."
           />
-          <div className="overflow-hidden rounded-ui border border-line bg-card">
-            <div className="grid md:grid-cols-2">
-              <ComparisonColumn
-                items={[
-                  "Your number is shared with multiple lenders",
-                  "Relentless calls",
-                  "Advertised rates that change later",
-                  "You become the product",
-                ]}
-                title="The old way"
-              />
-              <ComparisonColumn
-                items={[
-                  "Anonymous listing",
-                  "Silent bids",
-                  "Firm bids keyed to your verified profile",
-                  "You hold the gavel",
-                ]}
-                title="VieRates"
-              />
-            </div>
+          <div className="grid gap-4 md:grid-cols-[0.96fr_1.04fr]">
+            <ComparisonColumn
+              items={[
+                "Your number is shared with multiple lenders",
+                "Relentless calls",
+                "Advertised rates that change later",
+                "You become the product",
+              ]}
+              title="The old way"
+              tone="old"
+            />
+            <ComparisonColumn
+              items={[
+                "Anonymous listing",
+                "Silent bids",
+                "Firm bids keyed to your verified profile",
+                "You hold the gavel",
+              ]}
+              title="VieRates"
+              tone="vierates"
+            />
           </div>
         </div>
       </section>
@@ -237,7 +237,7 @@ function MarketContextBand() {
           the first auctions close.
         </p>
       </div>
-      <div className="vr-data rounded-ui border border-line bg-paper px-4 py-3 text-right text-ink">
+      <div className="vr-data grid justify-items-center rounded-ui border border-line bg-paper px-4 py-3 text-center text-ink md:min-w-64">
         <p className="text-2xl font-semibold">6.08%-6.49%</p>
         <p className="mt-1 text-xs text-text-muted">
           Illustrative range · as of June 11, 2026
@@ -320,21 +320,166 @@ function WaitlistInlineLink() {
 
 function ComparisonColumn({
   items,
+  tone,
   title,
 }: {
   items: string[];
+  tone: "old" | "vierates";
   title: string;
 }) {
+  const isVieRates = tone === "vierates";
+  const rowBorder = isVieRates ? "border-ink-line" : "border-line";
+  const mutedText = isVieRates ? "text-on-ink-dim" : "text-text-muted";
+
   return (
-    <div className="border-b border-line p-6 last:border-b-0 md:border-b-0 md:border-r md:last:border-r-0">
-      <h3 className="font-display text-2xl font-semibold text-ink">{title}</h3>
-      <ul className="mt-5 grid gap-3 text-sm leading-6 text-text">
+    <article
+      className={[
+        "relative overflow-hidden rounded-card border shadow-[var(--shadow-1)]",
+        isVieRates
+          ? "border-ink bg-ink text-on-ink"
+          : "border-line bg-card text-ink",
+      ].join(" ")}
+    >
+      <div
+        aria-hidden="true"
+        className={[
+          "absolute inset-x-0 top-0 h-1.5",
+          isVieRates ? "bg-verified" : "bg-alert",
+        ].join(" ")}
+      />
+      <div className="grid gap-5 p-6 sm:grid-cols-[1fr_auto] sm:items-start">
+        <div>
+          <p className={["vr-eyebrow", mutedText].join(" ")}>
+            {isVieRates ? "Sealed bid path" : "Shared contact path"}
+          </p>
+          <h3 className="mt-2 font-display text-3xl font-semibold leading-tight">
+            {title}
+          </h3>
+        </div>
+        <ComparisonBadge tone={tone} />
+      </div>
+      <ul className={["border-t", rowBorder].join(" ")}>
         {items.map((item) => (
-          <li className="border-t border-line pt-3" key={item}>
-            {item}
+          <li
+            className={[
+              "grid min-h-16 grid-cols-[2rem_1fr] items-center gap-3 border-t px-6 py-4 text-sm font-semibold leading-6 first:border-t-0",
+              rowBorder,
+              isVieRates ? "text-on-ink" : "text-text",
+            ].join(" ")}
+            key={item}
+          >
+            <ComparisonStatusIcon tone={tone} />
+            <span>{item}</span>
           </li>
         ))}
       </ul>
+      <ComparisonMiniature tone={tone} />
+    </article>
+  );
+}
+
+function ComparisonBadge({ tone }: { tone: "old" | "vierates" }) {
+  const isVieRates = tone === "vierates";
+
+  return (
+    <div
+      className={[
+        "inline-flex min-h-11 items-center gap-2 rounded-button border px-3 text-sm font-semibold",
+        isVieRates
+          ? "border-white/20 bg-white/5 text-on-ink"
+          : "border-alert/30 bg-[var(--alert-tint)] text-alert",
+      ].join(" ")}
+    >
+      <span
+        aria-hidden="true"
+        className={[
+          "h-2.5 w-2.5 rounded-full",
+          isVieRates ? "bg-verified" : "bg-alert",
+        ].join(" ")}
+      />
+      {isVieRates ? "Identity sealed" : "Contact shared"}
+    </div>
+  );
+}
+
+function ComparisonStatusIcon({ tone }: { tone: "old" | "vierates" }) {
+  const isVieRates = tone === "vierates";
+
+  return (
+    <span
+      aria-hidden="true"
+      className={[
+        "grid h-8 w-8 place-items-center rounded-full border",
+        isVieRates
+          ? "border-verified/50 bg-[var(--verified-tint)]"
+          : "border-alert/40 bg-[var(--alert-tint)]",
+      ].join(" ")}
+    >
+      {isVieRates ? (
+        <span className="h-3 w-1.5 rotate-45 border-b-2 border-r-2 border-verified" />
+      ) : (
+        <span className="h-0.5 w-3.5 bg-alert" />
+      )}
+    </span>
+  );
+}
+
+function ComparisonMiniature({ tone }: { tone: "old" | "vierates" }) {
+  const isVieRates = tone === "vierates";
+
+  if (!isVieRates) {
+    return (
+      <div className="border-t border-line bg-paper p-5">
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <p className="text-xs font-semibold text-text-muted">Shared number</p>
+          <p className="vr-data text-xs font-semibold text-alert">4 lenders</p>
+        </div>
+        <div className="grid gap-2">
+          {["Lender A", "Lender B", "Lender C"].map((label) => (
+            <div
+              className="grid grid-cols-[0.75rem_1fr_auto] items-center gap-3 border-t border-line py-2 text-sm first:border-t-0"
+              key={label}
+            >
+              <span
+                aria-hidden="true"
+                className="h-2 w-2 rounded-full bg-alert"
+              />
+              <span className="font-semibold text-ink">{label}</span>
+              <span className="vr-data text-xs text-text-muted">call</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="border-t border-ink-line bg-white/5 p-5">
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <p className="text-xs font-semibold text-on-ink-dim">Identity vault</p>
+        <p className="vr-data text-xs font-semibold text-verified">
+          one reveal
+        </p>
+      </div>
+      <div className="grid gap-2">
+        {[
+          ["Name", "62%"],
+          ["Phone", "74%"],
+          ["Street address", "88%"],
+        ].map(([label, width]) => (
+          <div
+            className="grid grid-cols-[6.5rem_1fr] items-center gap-3 border-t border-ink-line py-2 text-sm first:border-t-0"
+            key={label}
+          >
+            <span className="font-semibold text-on-ink">{label}</span>
+            <span
+              aria-hidden="true"
+              className="inline-block h-2 bg-on-ink"
+              style={{ width }}
+            />
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
